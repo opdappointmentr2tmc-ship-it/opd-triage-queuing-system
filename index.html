@@ -139,6 +139,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 const activeStatus = {1:false,2:false,3:false,4:false,5:false};
 const colorStatus = {1:'green',2:'green',3:'green',4:'red',5:'red'};
 
@@ -149,12 +150,21 @@ function speakQueue(number, lane, counter){
     window.speechSynthesis.speak(msg);
 }
 
+// Unified dashboard update
+function updateDashboard(id, number){
+    const label = document.getElementById(`label${id}`).textContent;
+    db.ref(`/computers/${id}`).set({
+        number: number,
+        color: colorStatus[id],
+        label: label
+    }, err => { if(err) console.error('Dashboard update failed:', err); });
+}
+
 // Next button
 function nextQueue(id){
     if(activeStatus[id]) return;
     const color = colorStatus[id];
-    const ref = db.ref(`/series/${color}`);
-    ref.transaction(current => (current || 0) + 1, (err, committed, snap) => {
+    db.ref(`/series/${color}`).transaction(current => (current||0)+1, (err, committed, snap)=>{
         if(committed){
             const numEl = document.getElementById(`queue${id}`);
             numEl.textContent = snap.val();
@@ -163,54 +173,38 @@ function nextQueue(id){
             document.getElementById(`next${id}`).disabled = true;
             document.getElementById(`done${id}`).disabled = false;
             document.getElementById(`transpose${id}`).disabled = true;
-
-            const label = document.getElementById(`label${id}`).textContent;
+            updateDashboard(id, snap.val());
             const counter = document.getElementById(`comp${id}`).querySelector('.title').textContent;
-
-            // Update dashboard
-            db.ref(`/computers/${id}`).set({
-                number: snap.val(),
-                color: colorStatus[id],
-                label: label
-            });
-
-            speakQueue(snap.val(), label, counter);
+            speakQueue(snap.val(), document.getElementById(`label${id}`).textContent, counter);
         }
     });
 }
 
 // Done button
 function doneQueue(id){
-    const el = document.getElementById(`queue${id}`);
-    if(!el.textContent) return;
-    el.textContent = 'DONE';
-    el.classList.add('done');
+    const numEl = document.getElementById(`queue${id}`);
+    if(!numEl.textContent) return;
+    numEl.textContent = 'DONE';
+    numEl.classList.add('done');
     activeStatus[id] = false;
     document.getElementById(`next${id}`).disabled = false;
     document.getElementById(`done${id}`).disabled = true;
     document.getElementById(`transpose${id}`).disabled = false;
-
-    const label = document.getElementById(`label${id}`).textContent;
-    db.ref(`/computers/${id}`).set({
-        number: 'DONE',
-        color: colorStatus[id],
-        label: label
-    });
+    updateDashboard(id, 'DONE');
 }
 
 // Transpose button
 function transposeQueue(id){
     const comp = document.getElementById(`comp${id}`);
-    const label = comp.querySelector('.queue-label');
+    const label = document.getElementById(`label${id}`);
     const currentColor = colorStatus[id];
-    let newColor = currentColor==='green' ? 'red' : 'green';
-    label.textContent = newColor==='green' ? 'REGULAR LANE' : 'PRIORITY LANE';
+    const newColor = currentColor==='green'?'red':'green';
+    label.textContent = newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
     comp.classList.remove(currentColor);
     comp.classList.add(newColor);
     colorStatus[id] = newColor;
 
-    const ref = db.ref(`/series/${newColor}`);
-    ref.transaction(current => (current||0)+1, (err, committed, snap)=>{
+    db.ref(`/series/${newColor}`).transaction(current => (current||0)+1, (err, committed, snap)=>{
         if(committed){
             const numEl = document.getElementById(`queue${id}`);
             numEl.textContent = snap.val();
@@ -219,42 +213,29 @@ function transposeQueue(id){
             document.getElementById(`next${id}`).disabled = true;
             document.getElementById(`done${id}`).disabled = false;
             document.getElementById(`transpose${id}`).disabled = true;
-
-            db.ref(`/computers/${id}`).set({
-                number: snap.val(),
-                color: newColor,
-                label: label.textContent
-            });
-
+            updateDashboard(id, snap.val());
             const counter = comp.querySelector('.title').textContent;
             speakQueue(snap.val(), label.textContent, counter);
         }
     });
 }
 
-// Reset all queues
+// Reset button
 function resetQueues(){
-    if(confirm("Reset all series to 0?")){
-        db.ref('/series/green').set(0);
-        db.ref('/series/red').set(0);
-        for(let i=1;i<=5;i++){
-            const numEl = document.getElementById(`queue${i}`);
-            numEl.textContent = 0;
-            numEl.classList.remove('done');
-            activeStatus[i] = false;
-            document.getElementById(`next${i}`).disabled = false;
-            document.getElementById(`done${i}`).disabled = true;
-            document.getElementById(`transpose${i}`).disabled = true;
-            const label = document.getElementById(`label${i}`);
-            label.textContent = colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
-
-            // Update dashboard
-            db.ref(`/computers/${i}`).set({
-                number: 0,
-                color: colorStatus[i],
-                label: label.textContent
-            });
-        }
+    if(!confirm("Reset all series to 0?")) return;
+    db.ref('/series/green').set(0);
+    db.ref('/series/red').set(0);
+    for(let i=1;i<=5;i++){
+        const numEl = document.getElementById(`queue${i}`);
+        numEl.textContent = 0;
+        numEl.classList.remove('done');
+        activeStatus[i] = false;
+        document.getElementById(`next${i}`).disabled = false;
+        document.getElementById(`done${i}`).disabled = true;
+        document.getElementById(`transpose${i}`).disabled = true;
+        label = document.getElementById(`label${i}`);
+        label.textContent = colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
+        updateDashboard(i, 0);
     }
 }
 </script>
