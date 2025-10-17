@@ -142,12 +142,10 @@ const db = firebase.database();
 const activeStatus = {1:false,2:false,3:false,4:false,5:false};
 const colorStatus = {1:'green',2:'green',3:'green',4:'red',5:'red'};
 
-// Text-to-Speech: Number, Lane, Please proceed to Counter
+// Text-to-Speech
 function speakQueue(number, lane, counter){
     const msg = new SpeechSynthesisUtterance(`Number ${number}, ${lane}, please proceed to ${counter}`);
-    msg.volume = 1;
-    msg.rate = 1;
-    msg.pitch = 1.2;
+    msg.volume = 1; msg.rate = 1; msg.pitch = 1.2;
     window.speechSynthesis.speak(msg);
 }
 
@@ -156,7 +154,7 @@ function nextQueue(id){
     if(activeStatus[id]) return;
     const color = colorStatus[id];
     const ref = db.ref(`/series/${color}`);
-    ref.transaction(current=> (current||0)+1, (err, committed, snap)=>{
+    ref.transaction(current => (current || 0) + 1, (err, committed, snap) => {
         if(committed){
             const numEl = document.getElementById(`queue${id}`);
             numEl.textContent = snap.val();
@@ -165,9 +163,18 @@ function nextQueue(id){
             document.getElementById(`next${id}`).disabled = true;
             document.getElementById(`done${id}`).disabled = false;
             document.getElementById(`transpose${id}`).disabled = true;
-            const lane = document.getElementById(`label${id}`).textContent;
+
+            const label = document.getElementById(`label${id}`).textContent;
             const counter = document.getElementById(`comp${id}`).querySelector('.title').textContent;
-            speakQueue(snap.val(), lane, counter);
+
+            // Update dashboard
+            db.ref(`/computers/${id}`).set({
+                number: snap.val(),
+                color: colorStatus[id],
+                label: label
+            });
+
+            speakQueue(snap.val(), label, counter);
         }
     });
 }
@@ -182,6 +189,13 @@ function doneQueue(id){
     document.getElementById(`next${id}`).disabled = false;
     document.getElementById(`done${id}`).disabled = true;
     document.getElementById(`transpose${id}`).disabled = false;
+
+    const label = document.getElementById(`label${id}`).textContent;
+    db.ref(`/computers/${id}`).set({
+        number: 'DONE',
+        color: colorStatus[id],
+        label: label
+    });
 }
 
 // Transpose button
@@ -189,20 +203,14 @@ function transposeQueue(id){
     const comp = document.getElementById(`comp${id}`);
     const label = comp.querySelector('.queue-label');
     const currentColor = colorStatus[id];
-    let newColor;
-    if(currentColor==='green'){
-        newColor = 'red';
-        label.textContent = 'PRIORITY LANE';
-    } else {
-        newColor = 'green';
-        label.textContent = 'REGULAR LANE';
-    }
+    let newColor = currentColor==='green' ? 'red' : 'green';
+    label.textContent = newColor==='green' ? 'REGULAR LANE' : 'PRIORITY LANE';
     comp.classList.remove(currentColor);
     comp.classList.add(newColor);
     colorStatus[id] = newColor;
 
     const ref = db.ref(`/series/${newColor}`);
-    ref.transaction(current=> (current||0)+1, (err, committed, snap)=>{
+    ref.transaction(current => (current||0)+1, (err, committed, snap)=>{
         if(committed){
             const numEl = document.getElementById(`queue${id}`);
             numEl.textContent = snap.val();
@@ -211,13 +219,20 @@ function transposeQueue(id){
             document.getElementById(`next${id}`).disabled = true;
             document.getElementById(`done${id}`).disabled = false;
             document.getElementById(`transpose${id}`).disabled = true;
+
+            db.ref(`/computers/${id}`).set({
+                number: snap.val(),
+                color: newColor,
+                label: label.textContent
+            });
+
             const counter = comp.querySelector('.title').textContent;
             speakQueue(snap.val(), label.textContent, counter);
         }
     });
 }
 
-// Reset button
+// Reset all queues
 function resetQueues(){
     if(confirm("Reset all series to 0?")){
         db.ref('/series/green').set(0);
@@ -232,10 +247,16 @@ function resetQueues(){
             document.getElementById(`transpose${i}`).disabled = true;
             const label = document.getElementById(`label${i}`);
             label.textContent = colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
+
+            // Update dashboard
+            db.ref(`/computers/${i}`).set({
+                number: 0,
+                color: colorStatus[i],
+                label: label.textContent
+            });
         }
     }
 }
 </script>
 </body>
 </html>
-
