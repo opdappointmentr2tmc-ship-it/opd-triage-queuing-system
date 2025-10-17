@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Queue Dashboard Fullscreen</title>
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  overflow: hidden;
+}
+body {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: 1fr;
+  width: 100%;
+  height: 100%;
+}
+.computer-display {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2px;
+  background: #fff;
+  border-radius: 1vw;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  border: 0.8vw solid #28a745;
+  padding: 2vh 1vw;
+}
+.computer-display.red { border-color: #dc3545; }
+.computer-title {
+  font-size: 3vw;
+  font-weight: bold;
+  text-align: center;
+}
+.queue-number {
+  font-size: 10vw;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
+  line-height: 1;
+  transition: all 0.5s ease;
+}
+.queue-label {
+  font-size: 2.5vw;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1vh;
+}
+/* Highlight animation */
+.queue-number.highlight {
+  color: #ff0000;
+  font-size: 12vw;
+}
+/* Responsive adjustments */
+@media (max-width: 1600px) {
+  .queue-number { font-size: 8vw; }
+  .computer-title { font-size: 2.5vw; }
+  .queue-label { font-size: 2vw; }
+}
+@media (max-width: 1200px) {
+  .queue-number { font-size: 6vw; }
+  .computer-title { font-size: 2vw; }
+  .queue-label { font-size: 1.8vw; }
+}
+@media (max-width: 800px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, 1fr);
+  }
+  .queue-number { font-size: 12vw; }
+  .computer-title { font-size: 4vw; }
+  .queue-label { font-size: 3vw; }
+}
+</style>
+</head>
+<body>
+
+<div class="computer-display green" id="comp1">
+  <div class="computer-title">Computer 1</div>
+  <div class="queue-number" id="queue1">0</div>
+  <div class="queue-label">REGULAR LANE</div>
+</div>
+
+<div class="computer-display green" id="comp2">
+  <div class="computer-title">Computer 2</div>
+  <div class="queue-number" id="queue2">0</div>
+  <div class="queue-label">REGULAR LANE</div>
+</div>
+
+<div class="computer-display green" id="comp3">
+  <div class="computer-title">Computer 3</div>
+  <div class="queue-number" id="queue3">0</div>
+  <div class="queue-label">REGULAR LANE</div>
+</div>
+
+<div class="computer-display red" id="comp4">
+  <div class="computer-title">Computer 4</div>
+  <div class="queue-number" id="queue4">0</div>
+  <div class="queue-label">PRIORITY LANE</div>
+</div>
+
+<div class="computer-display red" id="comp5">
+  <div class="computer-title">Computer 5</div>
+  <div class="queue-number" id="queue5">0</div>
+  <div class="queue-label">PRIORITY LANE</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDq7MaECqAk",
+  authDomain: "queuesystem-80ce7.firebaseapp.com",
+  databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queuesystem-80ce7",
+  storageBucket: "queuesystem-80ce7.firebasestorage.app",
+  messagingSenderId: "399130001823",
+  appId: "1:399130001823:web:052ecfb12ae9007463bdaa",
+  measurementId: "G-BL87CQKZV6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function highlightNumber(el){
+  el.classList.add('highlight');
+  setTimeout(()=> el.classList.remove('highlight'), 800); // 0.8s highlight
+}
+
+// Listen to changes for all computers
+for(let i=1;i<=5;i++){
+  db.ref(`/computers/${i}`).on('value', snap=>{
+    const data = snap.val();
+    if(data){
+      const el = document.getElementById(`queue${i}`);
+      el.textContent = data.number;
+      highlightNumber(el); // apply temporary highlight
+      const compEl = document.getElementById(`comp${i}`);
+      compEl.classList.remove('green','red');
+      compEl.classList.add(data.color);
+      const labelEl = compEl.querySelector('.queue-label');
+      labelEl.textContent = data.label;
+    }
+  });
+}
+</script>
+</body>
+</html>

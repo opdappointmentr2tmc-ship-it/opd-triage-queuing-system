@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Queue System with TTS</title>
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  height: 100vh;
+  background: #f4f4f4;
+  gap: 10px;
+  padding: 10px;
+}
+.computer {
+  flex: 1 1 calc(33.333% - 20px);
+  min-width: 300px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  transition: background 0.3s, border 0.3s;
+}
+.green { background-color:#d4edda; border:10px solid #28a745; }
+.red { background-color:#f8d7da; border:10px solid #dc3545; }
+.title { font-size: 30px; font-weight: bold; }
+.queue-number {
+  font-size: 200px;
+  font-weight: bold;
+  color: #222;
+  min-height: 200px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition: color 0.3s;
+}
+.queue-number.done { color: #888; font-size: 150px; font-style: italic; }
+.queue-label { font-size: 20px; margin-top: 10px; font-weight: bold; }
+button {
+  padding: 15px 25px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+}
+.next-btn { background-color: #007bff; color: white; }
+.done-btn { background-color: #6c757d; color: white; }
+.transpose-btn { background-color: #ffc107; color: black; }
+.reset-btn { background-color: #dc3545; color: white; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:hover:not(:disabled) { opacity: 0.9; }
+@media(max-width:900px){ .computer { flex: 1 1 100%; } .queue-number { font-size: 150px; } }
+</style>
+</head>
+<body>
+
+<!-- Counters -->
+<div class="computer green" id="comp1">
+  <div class="title">Counter 1</div>
+  <div class="queue-number" id="queue1">0</div>
+  <div class="queue-label" id="label1">REGULAR LANE</div>
+  <div>
+    <button class="next-btn" id="next1" onclick="nextQueue(1)">Next</button>
+    <button class="done-btn" id="done1" onclick="doneQueue(1)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose1" onclick="transposeQueue(1)" disabled>Transpose</button>
+  </div>
+</div>
+
+<div class="computer green" id="comp2">
+  <div class="title">Counter 2</div>
+  <div class="queue-number" id="queue2">0</div>
+  <div class="queue-label" id="label2">REGULAR LANE</div>
+  <div>
+    <button class="next-btn" id="next2" onclick="nextQueue(2)">Next</button>
+    <button class="done-btn" id="done2" onclick="doneQueue(2)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose2" onclick="transposeQueue(2)" disabled>Transpose</button>
+  </div>
+</div>
+
+<div class="computer green" id="comp3">
+  <div class="title">Counter 3</div>
+  <div class="queue-number" id="queue3">0</div>
+  <div class="queue-label" id="label3">REGULAR LANE</div>
+  <div>
+    <button class="next-btn" id="next3" onclick="nextQueue(3)">Next</button>
+    <button class="done-btn" id="done3" onclick="doneQueue(3)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose3" onclick="transposeQueue(3)" disabled>Transpose</button>
+  </div>
+</div>
+
+<div class="computer red" id="comp4">
+  <div class="title">Counter 4</div>
+  <div class="queue-number" id="queue4">0</div>
+  <div class="queue-label" id="label4">PRIORITY LANE</div>
+  <div>
+    <button class="next-btn" id="next4" onclick="nextQueue(4)">Next</button>
+    <button class="done-btn" id="done4" onclick="doneQueue(4)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose4" onclick="transposeQueue(4)" disabled>Transpose</button>
+  </div>
+</div>
+
+<div class="computer red" id="comp5">
+  <div class="title">Counter 5</div>
+  <div class="queue-number" id="queue5">0</div>
+  <div class="queue-label" id="label5">PRIORITY LANE</div>
+  <div>
+    <button class="next-btn" id="next5" onclick="nextQueue(5)">Next</button>
+    <button class="done-btn" id="done5" onclick="doneQueue(5)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose5" onclick="transposeQueue(5)" disabled>Transpose</button>
+  </div>
+</div>
+
+<div style="width:100%;text-align:center;margin-top:10px;">
+  <button class="reset-btn" onclick="resetQueues()">RESET QUEUES</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
+  authDomain: "queuesystem-80ce7.firebaseapp.com",
+  databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queuesystem-80ce7",
+  storageBucket: "queuesystem-80ce7.firebasestorage.app",
+  messagingSenderId: "399130001823",
+  appId: "1:399130001823:web:052ecfb12ae9007463bdaa",
+  measurementId: "G-BL87CQKZV6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const activeStatus = {1:false,2:false,3:false,4:false,5:false};
+const colorStatus = {1:'green',2:'green',3:'green',4:'red',5:'red'};
+
+// Text-to-Speech: Number, Lane, Please proceed to Counter
+function speakQueue(number, lane, counter){
+    const msg = new SpeechSynthesisUtterance(`Number ${number}, ${lane}, please proceed to ${counter}`);
+    msg.volume = 1;
+    msg.rate = 1;
+    msg.pitch = 1.2;
+    window.speechSynthesis.speak(msg);
+}
+
+// Next button
+function nextQueue(id){
+    if(activeStatus[id]) return;
+    const color = colorStatus[id];
+    const ref = db.ref(`/series/${color}`);
+    ref.transaction(current=> (current||0)+1, (err, committed, snap)=>{
+        if(committed){
+            const numEl = document.getElementById(`queue${id}`);
+            numEl.textContent = snap.val();
+            numEl.classList.remove('done');
+            activeStatus[id] = true;
+            document.getElementById(`next${id}`).disabled = true;
+            document.getElementById(`done${id}`).disabled = false;
+            document.getElementById(`transpose${id}`).disabled = true;
+            const lane = document.getElementById(`label${id}`).textContent;
+            const counter = document.getElementById(`comp${id}`).querySelector('.title').textContent;
+            speakQueue(snap.val(), lane, counter);
+        }
+    });
+}
+
+// Done button
+function doneQueue(id){
+    const el = document.getElementById(`queue${id}`);
+    if(!el.textContent) return;
+    el.textContent = 'DONE';
+    el.classList.add('done');
+    activeStatus[id] = false;
+    document.getElementById(`next${id}`).disabled = false;
+    document.getElementById(`done${id}`).disabled = true;
+    document.getElementById(`transpose${id}`).disabled = false;
+}
+
+// Transpose button
+function transposeQueue(id){
+    const comp = document.getElementById(`comp${id}`);
+    const label = comp.querySelector('.queue-label');
+    const currentColor = colorStatus[id];
+    let newColor;
+    if(currentColor==='green'){
+        newColor = 'red';
+        label.textContent = 'PRIORITY LANE';
+    } else {
+        newColor = 'green';
+        label.textContent = 'REGULAR LANE';
+    }
+    comp.classList.remove(currentColor);
+    comp.classList.add(newColor);
+    colorStatus[id] = newColor;
+
+    const ref = db.ref(`/series/${newColor}`);
+    ref.transaction(current=> (current||0)+1, (err, committed, snap)=>{
+        if(committed){
+            const numEl = document.getElementById(`queue${id}`);
+            numEl.textContent = snap.val();
+            numEl.classList.remove('done');
+            activeStatus[id] = true;
+            document.getElementById(`next${id}`).disabled = true;
+            document.getElementById(`done${id}`).disabled = false;
+            document.getElementById(`transpose${id}`).disabled = true;
+            const counter = comp.querySelector('.title').textContent;
+            speakQueue(snap.val(), label.textContent, counter);
+        }
+    });
+}
+
+// Reset button
+function resetQueues(){
+    if(confirm("Reset all series to 0?")){
+        db.ref('/series/green').set(0);
+        db.ref('/series/red').set(0);
+        for(let i=1;i<=5;i++){
+            const numEl = document.getElementById(`queue${i}`);
+            numEl.textContent = 0;
+            numEl.classList.remove('done');
+            activeStatus[i] = false;
+            document.getElementById(`next${i}`).disabled = false;
+            document.getElementById(`done${i}`).disabled = true;
+            document.getElementById(`transpose${i}`).disabled = true;
+            const label = document.getElementById(`label${i}`);
+            label.textContent = colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
+        }
+    }
+}
+</script>
+</body>
+</html>
