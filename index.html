@@ -224,7 +224,7 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-// --- Firebase and queue logic ---
+// --- Firebase setup ---
 const firebaseConfig = {
   apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
   authDomain: "queuesystem-80ce7.firebaseapp.com",
@@ -250,7 +250,7 @@ for(let i=1;i<=5;i++){
   document.getElementById(`transpose${i}`).disabled=true;
 }
 
-// Counter selection
+// --- Counter selection ---
 function selectCounter(id){
   myCounter=id; isAdmin=false;
   for(let i=1;i<=5;i++){
@@ -289,13 +289,13 @@ function loginAdmin(){
   } else { document.getElementById('adminError').style.display='block'; }
 }
 
-// Animate numbers
+// --- Animate number ---
 function animateNumber(numEl){
   numEl.classList.add('animate');
   setTimeout(()=>{ numEl.classList.remove('animate'); },400);
 }
 
-// Next queue
+// --- Queue actions ---
 function nextQueue(id){
   if(myCounter!==id && !isAdmin) return;
   if(activeStatus[id]) return;
@@ -311,12 +311,11 @@ function nextQueue(id){
       document.getElementById(`next${id}`).disabled=true;
       document.getElementById(`done${id}`).disabled=false;
       document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
+      updateDashboard(id,snap.val(),true);
     }
   });
 }
 
-// Done queue
 function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
   const numEl=document.getElementById(`queue${id}`);
@@ -325,10 +324,9 @@ function doneQueue(id){
   document.getElementById(`next${id}`).disabled=false;
   document.getElementById(`done${id}`).disabled=true;
   document.getElementById(`transpose${id}`).disabled=false;
-  updateDashboard(id,lastNumber[id]);
+  updateDashboard(id,lastNumber[id],true,true);
 }
 
-// Transpose queue
 function transposeQueue(id){
   if(myCounter!==id && !isAdmin) return;
   const comp=document.getElementById(`comp${id}`);
@@ -350,12 +348,12 @@ function transposeQueue(id){
       document.getElementById(`next${id}`).disabled=true;
       document.getElementById(`done${id}`).disabled=false;
       document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
+      updateDashboard(id,snap.val(),true);
     }
   });
 }
 
-// Reset queues
+// --- Reset queues ---
 function resetQueues(){
   if(!isAdmin) return; if(!confirm("Reset all series to 0?")) return;
   db.ref('/series/green').set(0); db.ref('/series/red').set(0);
@@ -368,13 +366,13 @@ function resetQueues(){
     document.getElementById(`next${i}`).disabled=false;
     document.getElementById(`done${i}`).disabled=true;
     document.getElementById(`transpose${i}`).disabled=true;
-    updateDashboard(i,0);
+    updateDashboard(i,0,true,false);
   }
 }
 
-// --- FIXED: Set number manually from admin panel ---
+// --- Set number from admin ---
 function setNumber(){
-  const lane = document.getElementById('laneSelect').value; // 'green' or 'red'
+  const lane = document.getElementById('laneSelect').value;
   const counter = parseInt(document.getElementById('counterSelect').value);
   const number = parseInt(document.getElementById('numberInput').value);
 
@@ -393,22 +391,71 @@ function setNumber(){
 
   document.getElementById(`label${counter}`).textContent = lane==='green'?'REGULAR LANE':'PRIORITY LANE';
 
-  // ✅ Update Firebase series so nextQueue increments correctly
+  // Update Firebase series so nextQueue increments correctly
   db.ref(`/series/${lane}`).set(number);
 
   // Update dashboard
-  updateDashboard(counter, number);
+  updateDashboard(counter, number,true);
 
   animateNumber(numEl);
-
-  // Reset input
   document.getElementById('numberInput').value = '';
 }
 
-// Firebase dashboard update
-function updateDashboard(id, number){
+// --- Update Firebase dashboard ---
+function updateDashboard(id, number, isNext=false, isDone=false){
   const label=document.getElementById(`label${id}`).textContent;
-  db.ref(`/computers/${id}`).set({number:number,color:colorStatus[id],label:label});
+  db.ref(`/computers/${id}`).set({
+    number:number,
+    color:colorStatus[id],
+    label:label,
+    nextEnabled: !activeStatus[id],
+    doneEnabled: activeStatus[id] && !isDone,
+    transposeEnabled: !activeStatus[id]
+  });
+}
+
+// --- Real-time listener ---
+for (let i = 1; i <= 5; i++) {
+  db.ref(`/computers/${i}`).on('value', snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    const numEl = document.getElementById(`queue${i}`);
+    const comp = document.getElementById(`comp${i}`);
+    const labelEl = document.getElementById(`label${i}`);
+
+    // Update number
+    if(numEl.textContent != data.number && data.number!=='DONE'){
+      numEl.textContent = data.number;
+      lastNumber[i] = data.number;
+      animateNumber(numEl);
+    }
+
+    // Update label
+    if(labelEl.textContent != data.label){
+      labelEl.textContent = data.label;
+    }
+
+    // Update color
+    if(!comp.classList.contains(data.color)){
+      comp.classList.remove('green','red');
+      comp.classList.add(data.color);
+      colorStatus[i]=data.color;
+    }
+
+    // Update buttons for admin
+    document.getElementById(`next${i}`).disabled = !data.nextEnabled;
+    document.getElementById(`done${i}`).disabled = !data.doneEnabled;
+    document.getElementById(`transpose${i}`).disabled = !data.transposeEnabled;
+
+    // Update done styling
+    if(!data.doneEnabled && !data.nextEnabled){
+      numEl.textContent = 'DONE';
+      numEl.classList.add('done');
+    } else if(data.nextEnabled || data.transposeEnabled){
+      numEl.classList.remove('done');
+    }
+  });
 }
 </script>
 </body>
