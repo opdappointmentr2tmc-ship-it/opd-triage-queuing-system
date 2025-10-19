@@ -241,7 +241,7 @@ function loginAdmin(){
   }
 }
 
-// Live Firebase listener
+// Live Firebase listener to update all counters instantly
 db.ref('/computers').on('value', snapshot => {
   const data = snapshot.val();
   if(!data) return;
@@ -285,11 +285,10 @@ function nextQueue(id){
 // Done queue
 function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
-  if(!lastNumber[id]) return;
-
-  const numEl = document.getElementById(`queue${id}`);
   const color = colorStatus[id];
+  const numEl = document.getElementById(`queue${id}`);
 
+  // Show DONE visually
   numEl.textContent = 'DONE';
   numEl.classList.add('done');
   activeStatus[id] = false;
@@ -297,22 +296,26 @@ function doneQueue(id){
   document.getElementById(`done${id}`).disabled = true;
   document.getElementById(`transpose${id}`).disabled = true;
 
-  // Automatically fetch next number
-  setTimeout(() => {
-    db.ref(`/series/${color}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
-      if(committed){
-        lastNumber[id]=snap.val();
-        numEl.textContent = snap.val();
-        numEl.classList.remove('done');
-        animateNumber(numEl);
-        activeStatus[id]=true;
-        document.getElementById(`next${id}`).disabled = true;
-        document.getElementById(`done${id}`).disabled = false;
-        document.getElementById(`transpose${id}`).disabled = true;
-        db.ref(`/computers/${id}`).set({number:snap.val(), color:color, label:color==='green'?'REGULAR LANE':'PRIORITY LANE'});
-      }
-    });
-  }, 500);
+  // Increment lane series and update Firebase
+  db.ref(`/series/${color}`).transaction(current => (current||0)+1, (err, committed, snap)=>{
+    if(committed){
+      const nextNumber = snap.val();
+      lastNumber[id] = nextNumber;
+
+      // Update this counter in /computers
+      db.ref(`/computers/${id}`).set({
+        number: nextNumber,
+        color: color,
+        label: color==='green'?'REGULAR LANE':'PRIORITY LANE'
+      });
+
+      // Buttons update
+      activeStatus[id] = true;
+      document.getElementById(`next${id}`).disabled = true;
+      document.getElementById(`done${id}`).disabled = false;
+      document.getElementById(`transpose${id}`).disabled = true;
+    }
+  });
 }
 
 // Transpose queue
@@ -362,11 +365,6 @@ function setNumber(){
   db.ref(`/series/${lane}`).set(number);
   db.ref(`/computers/${counter}`).set({number:number,color:lane,label:lane==='green'?'REGULAR LANE':'PRIORITY LANE'});
   document.getElementById('numberInput').value = '';
-}
-
-// Show selection overlay from admin
-function showSelectionOverlay(){
-  document.getElementById('selection-overlay').style.display='flex';
 }
 </script>
 </body>
