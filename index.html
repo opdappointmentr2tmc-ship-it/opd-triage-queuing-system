@@ -11,9 +11,7 @@ body { background: #f4f4f4; display: flex; flex-wrap: wrap; justify-content: cen
 /* COUNTERS */
 .computer { flex: 1 1 calc(33.333% - 20px); min-width: 300px; border-radius: 20px; text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background 0.3s, border 0.3s, transform 0.2s, box-shadow 0.2s; }
 .computer.green { background-color:#d4edda; border:10px solid #28a745; }
-.computer.green:hover { box-shadow: 0 10px 20px rgba(40,167,69,0.5); transform: translateY(-3px); }
 .computer.red { background-color:#f8d7da; border:10px solid #dc3545; }
-.computer.red:hover { box-shadow: 0 10px 20px rgba(220,53,69,0.5); transform: translateY(-3px); }
 
 .title { font-size: 30px; font-weight: bold; }
 .queue-number { font-size: clamp(80px, 15vw, 200px); font-weight: bold; color: #222; min-height: 200px; display:flex; justify-content:center; align-items:center; transition: color 0.3s, transform 0.3s, opacity 0.3s; }
@@ -28,7 +26,6 @@ button { padding: 15px 25px; margin: 5px; border: none; border-radius: 10px; cur
 .reset-btn { background-color: #dc3545; color: white; }
 .change-btn { background-color: #17a2b8; color: white; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 
 /* OVERLAYS */
 #selection-overlay, #admin-login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:9999; background: rgba(0,0,0,0.85); }
@@ -37,17 +34,13 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 #selection-overlay button, #admin-login-overlay button { width:220px; padding:12px; font-size:18px; border-radius:12px; font-weight:bold; box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
 #selection-overlay button:hover, #admin-login-overlay button:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
 #admin-login-overlay { display:none; color:black; }
-#admin-login-overlay input, #admin-login-overlay select { width:90%; padding:12px; margin:5px 0; font-size:16px; border-radius:10px; border:1px solid #ccc; text-align:center; outline:none; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
+#admin-login-overlay input, #admin-login-overlay select { width:90%; padding:12px; margin:5px 0; font-size:16px; border-radius:10px; border:1px solid #ccc; text-align:center; outline:none; }
 
 /* ADMIN PANEL */
 #admin-panel { display:none; background:#fff; padding:30px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.15); margin-top:20px; width:320px; }
-#admin-panel h3 { margin-bottom:20px; font-size:22px; color:#333; }
 .admin-grid { display:flex; flex-direction:column; gap:15px; }
 .admin-grid label { font-weight:bold; font-size:16px; color:#555; margin-bottom:5px; }
-.admin-grid input, .admin-grid select { font-size:16px; padding:12px; border-radius:10px; border:1px solid #ccc; outline:none; text-align:center; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
-
-/* SELECTION BUTTONS VERTICAL */
-#selection-overlay div { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+.admin-grid input, .admin-grid select { font-size:16px; padding:12px; border-radius:10px; border:1px solid #ccc; text-align:center; outline:none; }
 
 /* ANIMATION */
 @keyframes numberPop { 0% { transform: scale(1); opacity:0.5; } 50% { transform: scale(1.4); opacity:1; } 100% { transform: scale(1); opacity:1; } }
@@ -245,17 +238,21 @@ function loginAdmin(){
 db.ref('/computers').on('value', snapshot => {
   const data = snapshot.val();
   if(!data) return;
-  Object.keys(data).forEach(id=>{
+  Object.keys(data).forEach(id => {
     const counter = data[id];
     const numEl = document.getElementById(`queue${id}`);
     const comp = document.getElementById(`comp${id}`);
     const label = document.getElementById(`label${id}`);
+
+    // Update number only if changed
     if(counter.number !== lastNumber[id]){
       lastNumber[id] = counter.number;
       numEl.textContent = counter.number;
       numEl.classList.remove('done');
       animateNumber(numEl);
     }
+
+    // Update color and label if changed
     if(counter.color !== colorStatus[id]){
       comp.classList.remove('green','red');
       comp.classList.add(counter.color);
@@ -285,37 +282,13 @@ function nextQueue(id){
 // Done queue
 function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
-  const color = colorStatus[id];
   const numEl = document.getElementById(`queue${id}`);
-
-  // Show DONE visually
   numEl.textContent = 'DONE';
   numEl.classList.add('done');
   activeStatus[id] = false;
-  document.getElementById(`next${id}`).disabled = true;
+  document.getElementById(`next${id}`).disabled = false;
   document.getElementById(`done${id}`).disabled = true;
-  document.getElementById(`transpose${id}`).disabled = true;
-
-  // Increment lane series and update Firebase
-  db.ref(`/series/${color}`).transaction(current => (current||0)+1, (err, committed, snap)=>{
-    if(committed){
-      const nextNumber = snap.val();
-      lastNumber[id] = nextNumber;
-
-      // Update this counter in /computers
-      db.ref(`/computers/${id}`).set({
-        number: nextNumber,
-        color: color,
-        label: color==='green'?'REGULAR LANE':'PRIORITY LANE'
-      });
-
-      // Buttons update
-      activeStatus[id] = true;
-      document.getElementById(`next${id}`).disabled = true;
-      document.getElementById(`done${id}`).disabled = false;
-      document.getElementById(`transpose${id}`).disabled = true;
-    }
-  });
+  document.getElementById(`transpose${id}`).disabled = false;
 }
 
 // Transpose queue
