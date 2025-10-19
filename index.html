@@ -192,6 +192,12 @@ window.onload = () => {
   }
 }
 
+// Animate numbers
+function animateNumber(numEl){
+  numEl.classList.add('animate');
+  setTimeout(()=>{ numEl.classList.remove('animate'); },400);
+}
+
 // Counter selection
 function selectCounter(id){
   myCounter=id; isAdmin=false;
@@ -235,11 +241,29 @@ function loginAdmin(){
   }
 }
 
-// Animate numbers
-function animateNumber(numEl){
-  numEl.classList.add('animate');
-  setTimeout(()=>{ numEl.classList.remove('animate'); },400);
-}
+// Live Firebase listener
+db.ref('/computers').on('value', snapshot => {
+  const data = snapshot.val();
+  if(!data) return;
+  Object.keys(data).forEach(id=>{
+    const counter = data[id];
+    const numEl = document.getElementById(`queue${id}`);
+    const comp = document.getElementById(`comp${id}`);
+    const label = document.getElementById(`label${id}`);
+    if(counter.number !== lastNumber[id]){
+      lastNumber[id] = counter.number;
+      numEl.textContent = counter.number;
+      numEl.classList.remove('done');
+      animateNumber(numEl);
+    }
+    if(counter.color !== colorStatus[id]){
+      comp.classList.remove('green','red');
+      comp.classList.add(counter.color);
+      label.textContent = counter.color==='green'?'REGULAR LANE':'PRIORITY LANE';
+      colorStatus[id] = counter.color;
+    }
+  });
+});
 
 // Next queue
 function nextQueue(id){
@@ -248,16 +272,12 @@ function nextQueue(id){
   const color=colorStatus[id];
   db.ref(`/series/${color}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
     if(committed){
-      const numEl=document.getElementById(`queue${id}`);
       lastNumber[id]=snap.val();
-      numEl.textContent=snap.val();
-      numEl.classList.remove('done');
-      animateNumber(numEl);
+      db.ref(`/computers/${id}`).set({number:snap.val(), color:color, label:color==='green'?'REGULAR LANE':'PRIORITY LANE'});
       activeStatus[id]=true;
       document.getElementById(`next${id}`).disabled=true;
       document.getElementById(`done${id}`).disabled=false;
       document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
     }
   });
 }
@@ -265,46 +285,35 @@ function nextQueue(id){
 // Done queue
 function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
-  const numEl=document.getElementById(`queue${id}`);
   if(!lastNumber[id]) return;
+  const numEl=document.getElementById(`queue${id}`);
   numEl.textContent='DONE';
   numEl.classList.add('done');
   activeStatus[id]=false;
   document.getElementById(`next${id}`).disabled=false;
   document.getElementById(`done${id}`).disabled=true;
   document.getElementById(`transpose${id}`).disabled=false;
-  updateDashboard(id,lastNumber[id]);
 }
 
 // Transpose queue
 function transposeQueue(id){
   if(myCounter!==id && !isAdmin) return;
-
-  // Reset active status so next number can be fetched
-  activeStatus[id] = false;
-
   const comp=document.getElementById(`comp${id}`);
   const label=document.getElementById(`label${id}`);
   const currentColor=colorStatus[id];
   const newColor=currentColor==='green'?'red':'green';
-
-  label.textContent=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
   comp.classList.remove(currentColor);
   comp.classList.add(newColor);
+  label.textContent=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
   colorStatus[id]=newColor;
-
   db.ref(`/series/${newColor}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
     if(committed){
-      const numEl=document.getElementById(`queue${id}`);
       lastNumber[id]=snap.val();
-      numEl.textContent=snap.val();
-      numEl.classList.remove('done');
-      animateNumber(numEl);
+      db.ref(`/computers/${id}`).set({number:snap.val(), color:newColor, label:newColor==='green'?'REGULAR LANE':'PRIORITY LANE'});
       activeStatus[id]=true;
       document.getElementById(`next${id}`).disabled=true;
       document.getElementById(`done${id}`).disabled=false;
       document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
     }
   });
 }
@@ -316,19 +325,9 @@ function resetQueues(){
   db.ref('/series/green').set(0);
   db.ref('/series/red').set(0);
   for(let i=1;i<=5;i++){
-    const numEl=document.getElementById(`queue${i}`);
-    numEl.textContent=0;
-    numEl.classList.remove('done');
-    activeStatus[i]=false;
     lastNumber[i]=0;
-    const comp=document.getElementById(`comp${i}`);
-    comp.classList.remove('green','red');
-    comp.classList.add(colorStatus[i]);
-    document.getElementById(`label${i}`).textContent=colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
-    document.getElementById(`next${i}`).disabled=false;
-    document.getElementById(`done${i}`).disabled=true;
-    document.getElementById(`transpose${i}`).disabled=true;
-    updateDashboard(i,0);
+    activeStatus[i]=false;
+    db.ref(`/computers/${i}`).set({number:0,color:colorStatus[i],label:colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE'});
   }
 }
 
@@ -340,23 +339,9 @@ function setNumber(){
   if(isNaN(number)) return alert("Please enter a valid number");
   lastNumber[counter] = number;
   colorStatus[counter] = lane;
-  const numEl = document.getElementById(`queue${counter}`);
-  numEl.textContent = number;
-  numEl.classList.remove('done');
-  const comp = document.getElementById(`comp${counter}`);
-  comp.classList.remove('green','red');
-  comp.classList.add(lane);
-  document.getElementById(`label${counter}`).textContent = lane==='green'?'REGULAR LANE':'PRIORITY LANE';
   db.ref(`/series/${lane}`).set(number);
-  updateDashboard(counter, number);
-  animateNumber(numEl);
-  document.getElementById('numberInput').value = '';
-}
-
-// Update dashboard
-function updateDashboard(id, number){
-  const label=document.getElementById(`label${id}`).textContent;
-  db.ref(`/computers/${id}`).set({number:number,color:colorStatus[id],label:label});
+  db.ref(`/computers/${counter}`).set({number:number,color:lane,label:lane==='green'?'REGULAR LANE':'PRIORITY LANE'});
+  document.getElementById('numberInput').value='';
 }
 </script>
 
