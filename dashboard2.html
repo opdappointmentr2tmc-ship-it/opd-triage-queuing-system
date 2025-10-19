@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Queue Dashboard - Waiting Area</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    width: 100%; height: 100%;
+    font-family: "Poppins", Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    overflow: hidden;
+}
+h1 {
+    width: 100%;
+    text-align: center;
+    font-size: 2.8vw;
+    color: white;
+    padding: 1vh 0;
+    background: linear-gradient(90deg, #28a745 50%, #dc3545 50%);
+    font-weight: 700;
+}
+.lanes-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+    width: 95%;
+    height: 85%;
+    padding: 2vh 0;
+}
+.lane {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 1vw;
+    padding: 2vh 1vw;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    background: #fff;
+    position: relative;
+}
+.lane-title {
+    font-size: 2vw;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    width: 100%;
+    text-align: center;
+    padding: 1vh 0;
+    border-radius: 0.8vw;
+    margin-bottom: 1vh;
+}
+.lane.regular .lane-title { background-color: #28a745; }
+.lane.priority .lane-title { background-color: #dc3545; }
+
+.current-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111;
+    text-align: center;
+    margin: 1vh 0;
+}
+.current-number span {
+    font-size: clamp(3rem, 8vw, 12rem);
+    font-weight: 900;
+    display: block;
+    margin-top: 0.5vh;
+}
+
+.numbers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1vw;
+    width: 100%;
+    height: 100%;
+}
+.number-box {
+    flex: 1 1 20%;
+    max-width: 18%;
+    aspect-ratio: 1/1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3vw;
+    font-weight: 800;
+    color: #fff;
+    border-radius: 1vw;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: scale(0.8);
+    animation: fadeIn 0.5s forwards;
+}
+.lane.regular .number-box { background: #28a745; }
+.lane.priority .number-box { background: #dc3545; }
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+</head>
+<body>
+<h1>NEXT 10 NUMBERS — PLEASE PROCEED INSIDE THE TRIAGE AREA</h1>
+
+<div class="lanes-container">
+    <div class="lane regular">
+        <div class="lane-title">Regular Lane</div>
+        <div class="current-number">Current Number: <span id="regularCurrent">0</span></div>
+        <div class="numbers" id="regularNext"></div>
+    </div>
+    <div class="lane priority">
+        <div class="lane-title">Priority Lane</div>
+        <div class="current-number">Current Number: <span id="priorityCurrent">0</span></div>
+        <div class="numbers" id="priorityNext"></div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDq7MaECqAk",
+    authDomain: "queuesystem-80ce7.firebaseapp.com",
+    databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "queuesystem-80ce7",
+    storageBucket: "queuesystem-80ce7.appspot.com",
+    messagingSenderId: "399130001823",
+    appId: "1:399130001823:web:052ecfb12ae9007463bdaa",
+    measurementId: "G-BL87CQKZV6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let laneNumbers = { regular: 0, priority: 0 };
+let lastMilestone = { regular: 0, priority: 0 };
+
+// Update display for a lane
+function updateLane(lane, currentNum) {
+    const currentDisplay = document.getElementById(lane + 'Current');
+    const container = document.getElementById(lane + 'Next');
+    currentDisplay.textContent = currentNum;
+
+    if (currentNum >= 15) {
+        const milestone = Math.floor((currentNum - 5) / 10) * 10 + 5;
+        if (milestone !== lastMilestone[lane]) {
+            lastMilestone[lane] = milestone;
+            const nextTen = Array.from({length: 10}, (_, i) => milestone + i + 1);
+            container.innerHTML = nextTen.map(num => `<div class="number-box">${num}</div>`).join("");
+        }
+    } else {
+        container.innerHTML = "";
+    }
+}
+
+// Helper to recalc lane numbers (max per lane)
+function recalcLaneNumbers(dataSnap) {
+    laneNumbers = { regular: 0, priority: 0 }; // reset
+    dataSnap.forEach(child => {
+        const data = child.val();
+        if (!data) return;
+        const num = parseInt(data.number) || 0;
+        const lane = data.color === 'green' ? 'regular' : 'priority';
+        laneNumbers[lane] = Math.max(laneNumbers[lane], num);
+    });
+    updateLane('regular', laneNumbers['regular']);
+    updateLane('priority', laneNumbers['priority']);
+}
+
+// Real-time listener for all computers
+db.ref('/computers').on('value', snapshot => {
+    recalcLaneNumbers(snapshot);
+});
+</script>
+</body>
+</html>
