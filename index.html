@@ -279,14 +279,20 @@ function doneQueue(id){
 // Transpose queue
 function transposeQueue(id){
   if(myCounter!==id && !isAdmin) return;
+
+  // Reset active status so next number can be fetched
+  activeStatus[id] = false;
+
   const comp=document.getElementById(`comp${id}`);
   const label=document.getElementById(`label${id}`);
   const currentColor=colorStatus[id];
   const newColor=currentColor==='green'?'red':'green';
+
   label.textContent=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
   comp.classList.remove(currentColor);
   comp.classList.add(newColor);
   colorStatus[id]=newColor;
+
   db.ref(`/series/${newColor}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
     if(committed){
       const numEl=document.getElementById(`queue${id}`);
