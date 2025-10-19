@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Queue Dashboard</title>
 <style>
-* { box-sizing: border-box; margin:0; padding:0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 html, body {
   width: 100%;
   height: 100%;
@@ -19,32 +23,49 @@ body {
   grid-template-rows: 1fr;
   width: 100%;
   height: 100%;
+  gap: 4px;
+  padding: 4px;
 }
 .computer-display {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  margin: 2px;
-  background: #fff;
   border-radius: 1vw;
   box-shadow: 0 6px 12px rgba(0,0,0,0.2);
   border: 0.8vw solid #28a745;
   padding: 2vh 1vw;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
-.computer-display.red { border-color: #dc3545; }
+.computer-display.green {
+  border-color: #28a745;
+  background-color: #e9ffe9;
+}
+.computer-display.red {
+  border-color: #dc3545;
+  background-color: #ffe9e9;
+}
 .computer-title {
   font-size: 3vw;
   font-weight: bold;
   text-align: center;
 }
 .queue-number {
-  font-size: 10vw;
-  font-weight: bold;
-  color: #222;
+  font-size: 7vw;
+  font-weight: 900;
+  color: #111;
   text-align: center;
   line-height: 1;
-  transition: all 0.5s ease;
+  word-break: break-word;
+  transition: transform 0.4s ease, color 0.4s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+.queue-number.highlight {
+  color: #ff0000;
+  transform: scale(1.2);
 }
 .queue-label {
   font-size: 2.5vw;
@@ -52,19 +73,14 @@ body {
   text-align: center;
   margin-top: 1vh;
 }
-/* Highlight animation */
-.queue-number.highlight {
-  color: #ff0000;
-  font-size: 12vw;
-}
 /* Responsive adjustments */
 @media (max-width: 1600px) {
-  .queue-number { font-size: 8vw; }
+  .queue-number { font-size: 6vw; }
   .computer-title { font-size: 2.5vw; }
   .queue-label { font-size: 2vw; }
 }
 @media (max-width: 1200px) {
-  .queue-number { font-size: 6vw; }
+  .queue-number { font-size: 5vw; }
   .computer-title { font-size: 2vw; }
   .queue-label { font-size: 1.8vw; }
 }
@@ -81,6 +97,7 @@ body {
 </head>
 <body>
 
+<!-- 5 Counters -->
 <div class="computer-display green" id="comp1">
   <div class="computer-title">Counter 1</div>
   <div class="queue-number" id="queue1">0</div>
@@ -111,6 +128,7 @@ body {
   <div class="queue-label">PRIORITY LANE</div>
 </div>
 
+<!-- Firebase + Speech -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
@@ -127,23 +145,85 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ====== SPEECH HANDLING ======
+let maleVoices = [];
+let femaleVoices = [];
+let maleIndex = 0;
+let femaleIndex = 0;
+
+function loadVoices() {
+  const allVoices = window.speechSynthesis.getVoices();
+  maleVoices = allVoices.filter(v =>
+    v.name.toLowerCase().includes('male') ||
+    v.name.toLowerCase().includes('daniel') ||
+    v.name.toLowerCase().includes('google uk english male') ||
+    (v.name.toLowerCase().includes('en-gb') && !v.name.toLowerCase().includes('female'))
+  );
+  femaleVoices = allVoices.filter(v =>
+    v.name.toLowerCase().includes('female') ||
+    v.name.toLowerCase().includes('samantha') ||
+    v.name.toLowerCase().includes('victoria') ||
+    v.name.toLowerCase().includes('karen') ||
+    v.name.toLowerCase().includes('google us english female')
+  );
+}
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+loadVoices();
+
 function highlightNumber(el){
   el.classList.add('highlight');
-  setTimeout(()=> el.classList.remove('highlight'), 800); // 0.8s highlight
+  setTimeout(()=> el.classList.remove('highlight'), 800);
 }
 
-// Listen to changes for all computers
-for(let i=1;i<=5;i++){
-  db.ref(`/computers/${i}`).on('value', snap=>{
+function getNextVoice(color) {
+  if (color === 'red') {
+    if (femaleVoices.length === 0) return null;
+    const voice = femaleVoices[femaleIndex % femaleVoices.length];
+    femaleIndex++;
+    return voice;
+  } else {
+    if (maleVoices.length === 0) return null;
+    const voice = maleVoices[maleIndex % maleVoices.length];
+    maleIndex++;
+    return voice;
+  }
+}
+
+function speak(text, color) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.voice = getNextVoice(color) || window.speechSynthesis.getVoices()[0];
+  msg.rate = color === 'red' ? 0.9 : 1.05;
+  msg.pitch = color === 'red' ? 1.1 : 1.0;
+  msg.volume = 1;
+  // No cancel to allow multiple counters to announce together
+  window.speechSynthesis.speak(msg);
+}
+
+// ====== FIREBASE LISTENER ======
+for (let i = 1; i <= 5; i++) {
+  db.ref(`/computers/${i}`).on('value', snap => {
     const data = snap.val();
-    if(data){
+    if (data) {
       const el = document.getElementById(`queue${i}`);
-      el.textContent = data.number;
-      highlightNumber(el); // apply temporary highlight
       const compEl = document.getElementById(`comp${i}`);
-      compEl.classList.remove('green','red');
-      compEl.classList.add(data.color);
       const labelEl = compEl.querySelector('.queue-label');
+
+      // Ignore DONE
+      if (data.number === "DONE" || data.number === "Done") return;
+
+      const oldNumber = el.textContent;
+      el.textContent = data.number;
+
+      if (oldNumber !== String(data.number)) {
+        highlightNumber(el);
+        const colorName = data.color.toUpperCase();
+        speak(`Now serving, ${colorName} number ${data.number}, please proceed to counter ${i}.`, data.color);
+      }
+
+      compEl.classList.remove('green', 'red');
+      compEl.classList.add(data.color);
       labelEl.textContent = data.label;
     }
   });
@@ -151,4 +231,3 @@ for(let i=1;i<=5;i++){
 </script>
 </body>
 </html>
-
