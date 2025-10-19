@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Queuing System</title>
 <style>
@@ -52,7 +52,6 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 /* ANIMATION */
 @keyframes numberPop { 0% { transform: scale(1); opacity:0.5; } 50% { transform: scale(1.4); opacity:1; } 100% { transform: scale(1); opacity:1; } }
 .queue-number.animate { animation: numberPop 0.4s ease; }
-
 </style>
 </head>
 <body>
@@ -121,7 +120,6 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
     <button class="transpose-btn" id="transpose1" onclick="transposeQueue(1)">Transpose</button>
   </div>
 </div>
-
 <div class="computer green" id="comp2">
   <div class="title">Counter 2</div>
   <div class="queue-number" id="queue2">0</div>
@@ -132,7 +130,6 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
     <button class="transpose-btn" id="transpose2" onclick="transposeQueue(2)">Transpose</button>
   </div>
 </div>
-
 <div class="computer green" id="comp3">
   <div class="title">Counter 3</div>
   <div class="queue-number" id="queue3">0</div>
@@ -143,7 +140,6 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
     <button class="transpose-btn" id="transpose3" onclick="transposeQueue(3)">Transpose</button>
   </div>
 </div>
-
 <div class="computer red" id="comp4">
   <div class="title">Counter 4</div>
   <div class="queue-number" id="queue4">0</div>
@@ -154,7 +150,6 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
     <button class="transpose-btn" id="transpose4" onclick="transposeQueue(4)">Transpose</button>
   </div>
 </div>
-
 <div class="computer red" id="comp5">
   <div class="title">Counter 5</div>
   <div class="queue-number" id="queue5">0</div>
@@ -166,10 +161,10 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   </div>
 </div>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-// --- Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
   authDomain: "queuesystem-80ce7.firebaseapp.com",
@@ -182,24 +177,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- Variables ---
 let activeStatus = {1:false,2:false,3:false,4:false,5:false};
 let colorStatus = {1:'green',2:'green',3:'green',4:'red',5:'red'};
 let lastNumber = {1:0,2:0,3:0,4:0,5:0};
 let myCounter = null;
 let isAdmin = false;
 
-// --- Initialize buttons ---
-for(let i=1;i<=5;i++){
-  document.getElementById(`next${i}`).disabled=true;
-  document.getElementById(`done${i}`).disabled=true;
-  document.getElementById(`transpose${i}`).disabled=true;
+// Disable buttons initially
+window.onload = () => {
+  for(let i=1;i<=5;i++){
+    document.getElementById(`next${i}`).disabled=true;
+    document.getElementById(`done${i}`).disabled=true;
+    document.getElementById(`transpose${i}`).disabled=true;
+  }
 }
 
-// --- Counter selection ---
+// Counter selection
 function selectCounter(id){
-  myCounter=id;
-  isAdmin=false;
+  myCounter=id; isAdmin=false;
   for(let i=1;i<=5;i++){
     document.getElementById(`comp${i}`).style.display=(i===id)?'flex':'none';
     activeStatus[i]=false;
@@ -210,7 +205,6 @@ function selectCounter(id){
   document.getElementById('selection-overlay').style.display='none';
 }
 
-// Show selection overlay
 function showSelectionOverlay(){
   document.getElementById('selection-overlay').style.display='flex';
   for(let i=1;i<=5;i++){
@@ -218,19 +212,16 @@ function showSelectionOverlay(){
   }
 }
 
-// Show admin login
 function showAdminLogin(){
   document.getElementById('selection-overlay').style.display='none';
   document.getElementById('admin-login-overlay').style.display='flex';
 }
 
-// Admin login
 function loginAdmin(){
   const user=document.getElementById('adminUser').value;
   const pass=document.getElementById('adminPass').value;
   if(user==='a' && pass==='a'){
-    isAdmin=true;
-    myCounter=null;
+    isAdmin=true; myCounter=null;
     document.getElementById('admin-login-overlay').style.display='none';
     document.getElementById('admin-panel').style.display='block';
     for(let i=1;i<=5;i++){
@@ -356,11 +347,12 @@ function setNumber(){
   document.getElementById('numberInput').value = '';
 }
 
-// Update Firebase dashboard
+// Update dashboard
 function updateDashboard(id, number){
   const label=document.getElementById(`label${id}`).textContent;
   db.ref(`/computers/${id}`).set({number:number,color:colorStatus[id],label:label});
 }
 </script>
+
 </body>
 </html>
