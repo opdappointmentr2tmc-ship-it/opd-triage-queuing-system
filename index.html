@@ -286,13 +286,33 @@ function nextQueue(id){
 function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
   if(!lastNumber[id]) return;
-  const numEl=document.getElementById(`queue${id}`);
-  numEl.textContent='DONE';
+
+  const numEl = document.getElementById(`queue${id}`);
+  const color = colorStatus[id];
+
+  numEl.textContent = 'DONE';
   numEl.classList.add('done');
-  activeStatus[id]=false;
-  document.getElementById(`next${id}`).disabled=false;
-  document.getElementById(`done${id}`).disabled=true;
-  document.getElementById(`transpose${id}`).disabled=false;
+  activeStatus[id] = false;
+  document.getElementById(`next${id}`).disabled = true;
+  document.getElementById(`done${id}`).disabled = true;
+  document.getElementById(`transpose${id}`).disabled = true;
+
+  // Automatically fetch next number
+  setTimeout(() => {
+    db.ref(`/series/${color}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
+      if(committed){
+        lastNumber[id]=snap.val();
+        numEl.textContent = snap.val();
+        numEl.classList.remove('done');
+        animateNumber(numEl);
+        activeStatus[id]=true;
+        document.getElementById(`next${id}`).disabled = true;
+        document.getElementById(`done${id}`).disabled = false;
+        document.getElementById(`transpose${id}`).disabled = true;
+        db.ref(`/computers/${id}`).set({number:snap.val(), color:color, label:color==='green'?'REGULAR LANE':'PRIORITY LANE'});
+      }
+    });
+  }, 500);
 }
 
 // Transpose queue
@@ -341,9 +361,13 @@ function setNumber(){
   colorStatus[counter] = lane;
   db.ref(`/series/${lane}`).set(number);
   db.ref(`/computers/${counter}`).set({number:number,color:lane,label:lane==='green'?'REGULAR LANE':'PRIORITY LANE'});
-  document.getElementById('numberInput').value='';
+  document.getElementById('numberInput').value = '';
+}
+
+// Show selection overlay from admin
+function showSelectionOverlay(){
+  document.getElementById('selection-overlay').style.display='flex';
 }
 </script>
-
 </body>
 </html>
