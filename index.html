@@ -1,27 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Queuing System</title>
 <style>
 * { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background: #f4f4f4; display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; height: 100vh; gap: 10px; padding: 10px; }
+body {
+  background: #f4f4f4;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  height: 100vh;
+  gap: 10px;
+  padding: 10px;
+}
 
 /* COUNTERS */
-.computer { flex: 1 1 calc(33.333% - 20px); min-width: 300px; border-radius: 20px; text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background 0.3s, border 0.3s, transform 0.2s, box-shadow 0.2s; }
+.computer {
+  flex: 1 1 calc(33.333% - 20px);
+  min-width: 300px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  transition: background 0.3s, border 0.3s, transform 0.2s, box-shadow 0.2s;
+}
 .computer.green { background-color:#d4edda; border:10px solid #28a745; }
 .computer.green:hover { box-shadow: 0 10px 20px rgba(40,167,69,0.5); transform: translateY(-3px); }
 .computer.red { background-color:#f8d7da; border:10px solid #dc3545; }
 .computer.red:hover { box-shadow: 0 10px 20px rgba(220,53,69,0.5); transform: translateY(-3px); }
 
 .title { font-size: 30px; font-weight: bold; }
-.queue-number { font-size: clamp(80px, 15vw, 200px); font-weight: bold; color: #222; min-height: 200px; display:flex; justify-content:center; align-items:center; transition: color 0.3s, transform 0.3s, opacity 0.3s; }
-.queue-number.done { color: #888; font-size: clamp(60px, 15vw, 150px); font-style: italic; font-weight: bold; display:flex; justify-content:center; align-items:center; }
+.queue-number {
+  font-size: clamp(80px, 15vw, 200px);
+  font-weight: bold;
+  color: #222;
+  min-height: 200px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition: color 0.3s, transform 0.3s, opacity 0.3s;
+}
+.queue-number.done { color: #888; font-size: clamp(60px, 12vw, 150px); font-style: italic; }
 .queue-label { font-size: 20px; margin-top: 10px; font-weight: bold; }
 
 /* BUTTONS */
-button { padding: 15px 25px; margin: 5px; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.2s ease; }
+button {
+  padding: 15px 25px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
 .next-btn { background-color: #007bff; color: white; }
 .done-btn { background-color: #6c757d; color: white; }
 .transpose-btn { background-color: #ffc107; color: black; }
@@ -31,10 +69,26 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 
 /* OVERLAYS */
-#selection-overlay, #admin-login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:9999; background: rgba(0,0,0,0.85); }
-.overlay-box { background:white; padding:40px 30px; border-radius:20px; text-align:center; min-width:300px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; align-items:center; gap:20px; }
+#selection-overlay, #admin-login-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  display:flex; justify-content:center; align-items:center; flex-direction:column;
+  z-index:9999; background: rgba(0,0,0,0.85);
+}
+.overlay-box {
+  background:white; padding:40px 30px; border-radius:20px; text-align:center; min-width:300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+}
 #selection-overlay h2, #admin-login-overlay h2 { margin-bottom:20px; font-size:28px; color:#333; }
-#selection-overlay button, #admin-login-overlay button { width:220px; padding:12px; font-size:18px; border-radius:12px; font-weight:bold; box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
+#selection-overlay button, #admin-login-overlay button {
+  width:220px;
+  padding:12px;
+  font-size:18px;
+  border-radius:12px;
+  font-weight:bold;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+}
 #selection-overlay button:hover, #admin-login-overlay button:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
 #admin-login-overlay { display:none; color:black; }
 #admin-login-overlay input, #admin-login-overlay select { width:90%; padding:12px; margin:5px 0; font-size:16px; border-radius:10px; border:1px solid #ccc; text-align:center; outline:none; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
@@ -50,7 +104,11 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
 #selection-overlay div { display: flex; flex-direction: column; gap: 15px; align-items: center; }
 
 /* ANIMATION */
-@keyframes numberPop { 0% { transform: scale(1); opacity:0.5; } 50% { transform: scale(1.4); opacity:1; } 100% { transform: scale(1); opacity:1; } }
+@keyframes numberPop {
+  0% { transform: scale(1); opacity:0.5; }
+  50% { transform: scale(1.4); opacity:1; }
+  100% { transform: scale(1); opacity:1; }
+}
 .queue-number.animate { animation: numberPop 0.4s ease; }
 </style>
 </head>
@@ -91,6 +149,7 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
       <option value="green">Regular Lane</option>
       <option value="red">Priority Lane</option>
     </select>
+
     <label>Counter</label>
     <select id="counterSelect">
       <option value="1">Counter 1</option>
@@ -99,6 +158,7 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
       <option value="4">Counter 4</option>
       <option value="5">Counter 5</option>
     </select>
+
     <label>Number</label>
     <input type="number" id="numberInput" placeholder="Enter Number">
     <button class="change-btn" onclick="setNumber()">Set Number</button>
@@ -116,8 +176,8 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   <div class="queue-label" id="label1">REGULAR LANE</div>
   <div>
     <button class="next-btn" id="next1" onclick="nextQueue(1)">Next</button>
-    <button class="done-btn" id="done1" onclick="doneQueue(1)">Done</button>
-    <button class="transpose-btn" id="transpose1" onclick="transposeQueue(1)">Transpose</button>
+    <button class="done-btn" id="done1" onclick="doneQueue(1)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose1" onclick="transposeQueue(1)" disabled>Transpose</button>
   </div>
 </div>
 <div class="computer green" id="comp2">
@@ -126,8 +186,8 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   <div class="queue-label" id="label2">REGULAR LANE</div>
   <div>
     <button class="next-btn" id="next2" onclick="nextQueue(2)">Next</button>
-    <button class="done-btn" id="done2" onclick="doneQueue(2)">Done</button>
-    <button class="transpose-btn" id="transpose2" onclick="transposeQueue(2)">Transpose</button>
+    <button class="done-btn" id="done2" onclick="doneQueue(2)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose2" onclick="transposeQueue(2)" disabled>Transpose</button>
   </div>
 </div>
 <div class="computer green" id="comp3">
@@ -136,8 +196,8 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   <div class="queue-label" id="label3">REGULAR LANE</div>
   <div>
     <button class="next-btn" id="next3" onclick="nextQueue(3)">Next</button>
-    <button class="done-btn" id="done3" onclick="doneQueue(3)">Done</button>
-    <button class="transpose-btn" id="transpose3" onclick="transposeQueue(3)">Transpose</button>
+    <button class="done-btn" id="done3" onclick="doneQueue(3)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose3" onclick="transposeQueue(3)" disabled>Transpose</button>
   </div>
 </div>
 <div class="computer red" id="comp4">
@@ -146,8 +206,8 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   <div class="queue-label" id="label4">PRIORITY LANE</div>
   <div>
     <button class="next-btn" id="next4" onclick="nextQueue(4)">Next</button>
-    <button class="done-btn" id="done4" onclick="doneQueue(4)">Done</button>
-    <button class="transpose-btn" id="transpose4" onclick="transposeQueue(4)">Transpose</button>
+    <button class="done-btn" id="done4" onclick="doneQueue(4)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose4" onclick="transposeQueue(4)" disabled>Transpose</button>
   </div>
 </div>
 <div class="computer red" id="comp5">
@@ -156,15 +216,15 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   <div class="queue-label" id="label5">PRIORITY LANE</div>
   <div>
     <button class="next-btn" id="next5" onclick="nextQueue(5)">Next</button>
-    <button class="done-btn" id="done5" onclick="doneQueue(5)">Done</button>
-    <button class="transpose-btn" id="transpose5" onclick="transposeQueue(5)">Transpose</button>
+    <button class="done-btn" id="done5" onclick="doneQueue(5)" disabled>Done</button>
+    <button class="transpose-btn" id="transpose5" onclick="transposeQueue(5)" disabled>Transpose</button>
   </div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+// --- Firebase and queue logic ---
 const firebaseConfig = {
   apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
   authDomain: "queuesystem-80ce7.firebaseapp.com",
@@ -184,12 +244,10 @@ let myCounter = null;
 let isAdmin = false;
 
 // Disable buttons initially
-window.onload = () => {
-  for(let i=1;i<=5;i++){
-    document.getElementById(`next${i}`).disabled=true;
-    document.getElementById(`done${i}`).disabled=true;
-    document.getElementById(`transpose${i}`).disabled=true;
-  }
+for(let i=1;i<=5;i++){
+  document.getElementById(`next${i}`).disabled=true;
+  document.getElementById(`done${i}`).disabled=true;
+  document.getElementById(`transpose${i}`).disabled=true;
 }
 
 // Counter selection
@@ -207,9 +265,7 @@ function selectCounter(id){
 
 function showSelectionOverlay(){
   document.getElementById('selection-overlay').style.display='flex';
-  for(let i=1;i<=5;i++){
-    document.getElementById(`comp${i}`).style.display='flex';
-  }
+  for(let i=1;i<=5;i++){ document.getElementById(`comp${i}`).style.display='flex'; }
 }
 
 function showAdminLogin(){
@@ -230,9 +286,7 @@ function loginAdmin(){
       document.getElementById(`done${i}`).disabled=false;
       document.getElementById(`transpose${i}`).disabled=false;
     }
-  } else {
-    document.getElementById('adminError').style.display='block';
-  }
+  } else { document.getElementById('adminError').style.display='block'; }
 }
 
 // Animate numbers
@@ -267,9 +321,7 @@ function doneQueue(id){
   if(myCounter!==id && !isAdmin) return;
   const numEl=document.getElementById(`queue${id}`);
   if(!lastNumber[id]) return;
-  numEl.textContent='DONE';
-  numEl.classList.add('done');
-  activeStatus[id]=false;
+  numEl.textContent='DONE'; numEl.classList.add('done'); activeStatus[id]=false;
   document.getElementById(`next${id}`).disabled=false;
   document.getElementById(`done${id}`).disabled=true;
   document.getElementById(`transpose${id}`).disabled=false;
@@ -279,18 +331,12 @@ function doneQueue(id){
 // Transpose queue
 function transposeQueue(id){
   if(myCounter!==id && !isAdmin) return;
-
-  // Reset active status so next number can be fetched
-  activeStatus[id] = false;
-
   const comp=document.getElementById(`comp${id}`);
   const label=document.getElementById(`label${id}`);
   const currentColor=colorStatus[id];
   const newColor=currentColor==='green'?'red':'green';
-
   label.textContent=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
-  comp.classList.remove(currentColor);
-  comp.classList.add(newColor);
+  comp.classList.remove(currentColor); comp.classList.add(newColor);
   colorStatus[id]=newColor;
 
   db.ref(`/series/${newColor}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
@@ -311,19 +357,13 @@ function transposeQueue(id){
 
 // Reset queues
 function resetQueues(){
-  if(!isAdmin) return;
-  if(!confirm("Reset all series to 0?")) return;
-  db.ref('/series/green').set(0);
-  db.ref('/series/red').set(0);
+  if(!isAdmin) return; if(!confirm("Reset all series to 0?")) return;
+  db.ref('/series/green').set(0); db.ref('/series/red').set(0);
   for(let i=1;i<=5;i++){
     const numEl=document.getElementById(`queue${i}`);
-    numEl.textContent=0;
-    numEl.classList.remove('done');
-    activeStatus[i]=false;
-    lastNumber[i]=0;
+    numEl.textContent=0; numEl.classList.remove('done'); activeStatus[i]=false; lastNumber[i]=0;
     const comp=document.getElementById(`comp${i}`);
-    comp.classList.remove('green','red');
-    comp.classList.add(colorStatus[i]);
+    comp.classList.remove('green','red'); comp.classList.add(colorStatus[i]);
     document.getElementById(`label${i}`).textContent=colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
     document.getElementById(`next${i}`).disabled=false;
     document.getElementById(`done${i}`).disabled=true;
@@ -332,33 +372,44 @@ function resetQueues(){
   }
 }
 
-// Set number manually from admin
+// --- FIXED: Set number manually from admin panel ---
 function setNumber(){
-  const lane = document.getElementById('laneSelect').value;
+  const lane = document.getElementById('laneSelect').value; // 'green' or 'red'
   const counter = parseInt(document.getElementById('counterSelect').value);
   const number = parseInt(document.getElementById('numberInput').value);
+
   if(isNaN(number)) return alert("Please enter a valid number");
+
   lastNumber[counter] = number;
   colorStatus[counter] = lane;
+
   const numEl = document.getElementById(`queue${counter}`);
   numEl.textContent = number;
   numEl.classList.remove('done');
+
   const comp = document.getElementById(`comp${counter}`);
-  comp.classList.remove('green','red');
+  comp.classList.remove('green','red'); 
   comp.classList.add(lane);
+
   document.getElementById(`label${counter}`).textContent = lane==='green'?'REGULAR LANE':'PRIORITY LANE';
+
+  // ✅ Update Firebase series so nextQueue increments correctly
   db.ref(`/series/${lane}`).set(number);
+
+  // Update dashboard
   updateDashboard(counter, number);
+
   animateNumber(numEl);
+
+  // Reset input
   document.getElementById('numberInput').value = '';
 }
 
-// Update dashboard
+// Firebase dashboard update
 function updateDashboard(id, number){
   const label=document.getElementById(`label${id}`).textContent;
   db.ref(`/computers/${id}`).set({number:number,color:colorStatus[id],label:label});
 }
 </script>
-
 </body>
 </html>
