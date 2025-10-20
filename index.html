@@ -3,60 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Queuing System</title>
+<title>Queue System</title>
 <style>
 * { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background: #f4f4f4; display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; height: 100vh; gap: 10px; padding: 10px; }
-
-/* COUNTERS */
-.computer { flex: 1 1 calc(33.333% - 20px); min-width: 300px; border-radius: 20px; text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background 0.3s, border 0.3s, transform 0.2s, box-shadow 0.2s; }
-.computer.green { background-color:#d4edda; border:10px solid #28a745; }
-.computer.green:hover { box-shadow: 0 10px 20px rgba(40,167,69,0.5); transform: translateY(-3px); }
-.computer.red { background-color:#f8d7da; border:10px solid #dc3545; }
-.computer.red:hover { box-shadow: 0 10px 20px rgba(220,53,69,0.5); transform: translateY(-3px); }
-
-.title { font-size: 30px; font-weight: bold; }
-.queue-number { font-size: clamp(80px, 15vw, 200px); font-weight: bold; color: #222; min-height: 200px; display:flex; justify-content:center; align-items:center; transition: color 0.3s, transform 0.3s, opacity 0.3s; }
-.queue-number.done { color: #888; font-size: clamp(60px, 15vw, 150px); font-style: italic; font-weight: bold; display:flex; justify-content:center; align-items:center; }
-.queue-label { font-size: 20px; margin-top: 10px; font-weight: bold; }
-
-/* BUTTONS */
-button { padding: 15px 25px; margin: 5px; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.2s ease; }
-.next-btn { background-color: #007bff; color: white; }
-.done-btn { background-color: #6c757d; color: white; }
-.transpose-btn { background-color: #ffc107; color: black; }
-.reset-btn { background-color: #dc3545; color: white; }
-.change-btn { background-color: #17a2b8; color: white; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
-
-/* OVERLAYS */
+body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #2a5298); background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; }
+@keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 #selection-overlay, #admin-login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:9999; background: rgba(0,0,0,0.85); }
-.overlay-box { background:white; padding:40px 30px; border-radius:20px; text-align:center; min-width:300px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; align-items:center; gap:20px; }
-#selection-overlay h2, #admin-login-overlay h2 { margin-bottom:20px; font-size:28px; color:#333; }
-#selection-overlay button, #admin-login-overlay button { width:220px; padding:12px; font-size:18px; border-radius:12px; font-weight:bold; box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
-#selection-overlay button:hover, #admin-login-overlay button:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
-#admin-login-overlay { display:none; color:black; }
-#admin-login-overlay input, #admin-login-overlay select { width:90%; padding:12px; margin:5px 0; font-size:16px; border-radius:10px; border:1px solid #ccc; text-align:center; outline:none; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
-
-/* ADMIN PANEL */
-#admin-panel { display:none; background:#fff; padding:30px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.15); margin-top:20px; width:320px; }
-#admin-panel h3 { margin-bottom:20px; font-size:22px; color:#333; }
-.admin-grid { display:flex; flex-direction:column; gap:15px; }
-.admin-grid label { font-weight:bold; font-size:16px; color:#555; margin-bottom:5px; }
-.admin-grid input, .admin-grid select { font-size:16px; padding:12px; border-radius:10px; border:1px solid #ccc; outline:none; text-align:center; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
-
-/* SELECTION BUTTONS VERTICAL */
-#selection-overlay div { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-
-/* ANIMATION */
-@keyframes numberPop { 0% { transform: scale(1); opacity:0.5; } 50% { transform: scale(1.4); opacity:1; } 100% { transform: scale(1); opacity:1; } }
-.queue-number.animate { animation: numberPop 0.4s ease; }
+.overlay-box { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding:40px 30px; border-radius:25px; text-align:center; min-width:320px; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; gap:20px; color:#fff; }
+.overlay-box button { padding: 18px 30px; margin: 8px; border: none; border-radius: 15px; cursor: pointer; font-size: 18px; font-weight: bold; color: #fff; background: linear-gradient(135deg, #4facfe, #00f2fe); box-shadow: 0 6px 12px rgba(0,0,0,0.25); transition: all 0.3s ease; }
+.overlay-box button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.35); }
+.overlay-box button.admin-btn { background: linear-gradient(135deg, #ff758c, #ff7eb3); }
+#admin-login-overlay { display:none; }
+#admin-login-overlay input { width:90%; padding:14px 12px; margin:5px 0; font-size:16px; border-radius:12px; border:1px solid #ccc; text-align:center; outline:none; transition:all 0.3s ease; }
+#admin-login-overlay input:focus { border-color:#007bff; box-shadow:0 0 8px rgba(0,123,255,0.3); }
+#admin-panel { display:none; background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding:35px 25px; border-radius:25px; box-shadow:0 12px 40px rgba(0,0,0,0.3); margin-top:20px; width:360px; color:#fff; }
+#admin-panel h3 { font-size:24px; font-weight:700; margin-bottom:20px; text-align:center; }
+#admin-panel input, #admin-panel select { width:100%; padding:14px 15px; margin:8px 0; border-radius:12px; border:1px solid rgba(255,255,255,0.5); outline:none; background: rgba(255,255,255,0.1); color:#fff; font-size:16px; transition: all 0.3s ease; }
+#admin-panel input:focus, #admin-panel select:focus { border-color:#00f2fe; box-shadow:0 0 10px rgba(0,255,254,0.4); }
+#admin-panel button { width:100%; padding:15px 0; margin-top:12px; border:none; border-radius:15px; font-size:18px; font-weight:600; cursor:pointer; transition:all 0.3s ease; color:#fff; backdrop-filter: blur(5px); box-shadow:0 4px 15px rgba(0,0,0,0.25);}
+#admin-panel .change-btn { background: linear-gradient(135deg,#28a745,#7be495);}
+#admin-panel .reset-btn { background: linear-gradient(135deg,#dc3545,#ff6b6b);}
+#admin-panel button:hover { transform: translateY(-3px) scale(1.02); box-shadow:0 8px 25px rgba(0,0,0,0.35); }
+.computer { width: 100vw; height: 100vh; padding:50px; display:flex; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(15px); background: rgba(255,255,255,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; display:none; }
+.computer.green { background: rgba(72, 255, 0, 0.15); border:1px solid rgba(40,167,69,0.5);}
+.computer.red { background: rgba(255,72,72,0.15); border:1px solid rgba(220,53,69,0.5);}
+.title { font-size:48px; font-weight:700; color:#fff; margin-bottom:30px; text-align:center; text-shadow:1px 1px 6px rgba(0,0,0,0.5);}
+.queue-number { font-size:clamp(120px,20vw,250px); font-weight:900; color:#fff; min-height:250px; display:flex; justify-content:center; align-items:center; border-radius:30px; background: rgba(255,255,255,0.1); backdrop-filter:blur(10px); box-shadow:inset 0 4px 12px rgba(0,0,0,0.2); margin-bottom:30px; width:70%; transition: all 0.3s ease;}
+.queue-number.done { color: rgba(255,255,255,0.6); font-size:clamp(100px,18vw,200px); font-style:italic; background: rgba(0,0,0,0.1);}
+.queue-label { font-size:28px; font-weight:600; color:#fff; margin-bottom:30px; text-align:center; text-shadow:1px 1px 4px rgba(0,0,0,0.3);}
+.computer button { flex:1; margin:10px; padding:20px 25px; font-size:20px; font-weight:700; border-radius:15px; border:none; cursor:pointer; transition: all 0.2s ease; color:#fff; backdrop-filter: blur(5px); box-shadow:0 4px 20px rgba(0,0,0,0.25);}
+.next-btn { background: linear-gradient(135deg,#007bff,#00c6ff);}
+.done-btn { background: linear-gradient(135deg,#6c757d,#a0a0a0);}
+.recall-btn { background: linear-gradient(135deg,#17a2b8,#33d6ff);}
+.transpose-btn { background: linear-gradient(135deg,#ffc107,#ffdd57);}
+.computer button:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow:0 6px 25px rgba(0,0,0,0.35);}
+.computer button:disabled { opacity:0.5; cursor:not-allowed;}
+.queue-number.animate { animation: numberPop 0.4s ease;}
+@keyframes numberPop { 0% { transform: scale(1); opacity:0.5;} 50% { transform: scale(1.4); opacity:1;} 100% { transform: scale(1); opacity:1;} }
 </style>
 </head>
 <body>
 
-<!-- SELECTION OVERLAY -->
+<!-- Selection Overlay -->
 <div id="selection-overlay">
   <div class="overlay-box">
     <h2>Select Your Counter or Admin</h2>
@@ -66,12 +54,12 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
       <button onclick="selectCounter(3)">Counter 3</button>
       <button onclick="selectCounter(4)">Counter 4</button>
       <button onclick="selectCounter(5)">Counter 5</button>
-      <button onclick="showAdminLogin()">Admin</button>
+      <button class="admin-btn" onclick="showAdminLogin()">Admin</button>
     </div>
   </div>
 </div>
 
-<!-- ADMIN LOGIN OVERLAY -->
+<!-- Admin Login Overlay -->
 <div id="admin-login-overlay">
   <div class="overlay-box">
     <h2>Admin Login</h2>
@@ -82,10 +70,10 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- Admin Panel -->
 <div id="admin-panel">
   <h3>Set Lane Numbers</h3>
-  <div class="admin-grid">
+  <div>
     <label>Lane Type</label>
     <select id="laneSelect">
       <option value="green">Regular Lane</option>
@@ -109,57 +97,22 @@ button:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
   </div>
 </div>
 
-<!-- COUNTERS -->
-<div class="computer green" id="comp1">
-  <div class="title">Counter 1</div>
-  <div class="queue-number" id="queue1">0</div>
-  <div class="queue-label" id="label1">REGULAR LANE</div>
-  <div>
-    <button class="next-btn" id="next1" onclick="nextQueue(1)">Next</button>
-    <button class="done-btn" id="done1" onclick="doneQueue(1)">Done</button>
-    <button class="transpose-btn" id="transpose1" onclick="transposeQueue(1)">Transpose</button>
+<!-- Counters -->
+<script>
+const countersHTML = [1,2,3,4,5].map(i=>`
+<div class="computer ${i<=3?'green':'red'}" id="comp${i}">
+  <div class="title">Counter ${i}</div>
+  <div class="queue-number" id="queue${i}">0</div>
+  <div class="queue-label" id="label${i}">${i<=3?'REGULAR LANE':'PRIORITY LANE'}</div>
+  <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; width:80%;">
+    <button class="next-btn" id="next${i}" onclick="nextQueue(${i})">Next</button>
+    <button class="done-btn" id="done${i}" onclick="doneQueue(${i})">Done</button>
+    <button class="recall-btn" id="recall${i}" onclick="recallQueue(${i})">Recall</button>
+    <button class="transpose-btn" id="transpose${i}" onclick="transposeQueue(${i})">Transpose</button>
   </div>
-</div>
-<div class="computer green" id="comp2">
-  <div class="title">Counter 2</div>
-  <div class="queue-number" id="queue2">0</div>
-  <div class="queue-label" id="label2">REGULAR LANE</div>
-  <div>
-    <button class="next-btn" id="next2" onclick="nextQueue(2)">Next</button>
-    <button class="done-btn" id="done2" onclick="doneQueue(2)">Done</button>
-    <button class="transpose-btn" id="transpose2" onclick="transposeQueue(2)">Transpose</button>
-  </div>
-</div>
-<div class="computer green" id="comp3">
-  <div class="title">Counter 3</div>
-  <div class="queue-number" id="queue3">0</div>
-  <div class="queue-label" id="label3">REGULAR LANE</div>
-  <div>
-    <button class="next-btn" id="next3" onclick="nextQueue(3)">Next</button>
-    <button class="done-btn" id="done3" onclick="doneQueue(3)">Done</button>
-    <button class="transpose-btn" id="transpose3" onclick="transposeQueue(3)">Transpose</button>
-  </div>
-</div>
-<div class="computer red" id="comp4">
-  <div class="title">Counter 4</div>
-  <div class="queue-number" id="queue4">0</div>
-  <div class="queue-label" id="label4">PRIORITY LANE</div>
-  <div>
-    <button class="next-btn" id="next4" onclick="nextQueue(4)">Next</button>
-    <button class="done-btn" id="done4" onclick="doneQueue(4)">Done</button>
-    <button class="transpose-btn" id="transpose4" onclick="transposeQueue(4)">Transpose</button>
-  </div>
-</div>
-<div class="computer red" id="comp5">
-  <div class="title">Counter 5</div>
-  <div class="queue-number" id="queue5">0</div>
-  <div class="queue-label" id="label5">PRIORITY LANE</div>
-  <div>
-    <button class="next-btn" id="next5" onclick="nextQueue(5)">Next</button>
-    <button class="done-btn" id="done5" onclick="doneQueue(5)">Done</button>
-    <button class="transpose-btn" id="transpose5" onclick="transposeQueue(5)">Transpose</button>
-  </div>
-</div>
+</div>`).join('');
+document.write(countersHTML);
+</script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -176,183 +129,129 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+let currentCounter = null;
 
-let activeStatus = {1:false,2:false,3:false,4:false,5:false};
-let colorStatus = {1:'green',2:'green',3:'green',4:'red',5:'red'};
-let lastNumber = {1:0,2:0,3:0,4:0,5:0};
-let myCounter = null;
-let isAdmin = false;
-
-// Disable buttons initially
-window.onload = () => {
-  for(let i=1;i<=5;i++){
-    document.getElementById(`next${i}`).disabled = true;
-    document.getElementById(`done${i}`).disabled = true;
-    document.getElementById(`transpose${i}`).disabled = true;
-  }
+const counterState = {
+  1:{done:true,color:'green'},
+  2:{done:true,color:'green'},
+  3:{done:true,color:'green'},
+  4:{done:true,color:'red'},
+  5:{done:true,color:'red'}
 };
+function updateButtons(i){
+  document.getElementById(`next${i}`).disabled = !counterState[i].done;
+  document.getElementById(`transpose${i}`).disabled = !counterState[i].done;
+}
+for(let i=1;i<=5;i++) updateButtons(i);
 
-// Counter selection
-function selectCounter(id){
-  myCounter = id;
-  isAdmin = false;
-  for(let i=1;i<=5;i++){
-    document.getElementById(`comp${i}`).style.display = (i===id)?'flex':'none';
-    activeStatus[i] = false;
+// Select Counter / Admin
+function selectCounter(num){ currentCounter=num; document.getElementById('selection-overlay').style.display='none'; for(let i=1;i<=5;i++) document.getElementById(`comp${i}`).style.display = (i===num)?'flex':'none'; }
+function showAdminLogin(){ document.getElementById('selection-overlay').style.display='none'; document.getElementById('admin-login-overlay').style.display='flex'; }
+function loginAdmin(){ 
+  const user=document.getElementById('adminUser').value; 
+  const pass=document.getElementById('adminPass').value; 
+  if(user==='a' && pass==='a'){ document.getElementById('admin-login-overlay').style.display='none'; document.getElementById('admin-panel').style.display='block'; } 
+  else document.getElementById('adminError').style.display='block';
+}
+function showSelectionOverlay(){ location.reload(); }
+
+// Display + Firebase Update
+function updateCounterDisplay(i,num,color,label){
+  const el = document.getElementById(`queue${i}`);
+  el.textContent = num;
+  el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
+  db.ref(`/computers/${i}`).set({ number:num,color,label,recall:false });
+  counterState[i].done=(num==="DONE");
+  counterState[i].color=color;
+  updateButtons(i);
+}
+
+// NEXT
+function nextQueue(i){
+  if(!counterState[i].done) return;
+  const color=counterState[i].color;
+  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
+}
+
+// DONE
+function doneQueue(i){
+  const color=counterState[i].color;
+  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  const el=document.getElementById(`queue${i}`);
+  el.textContent="DONE"; el.classList.add('done');
+  db.ref(`/computers/${i}`).set({number:"DONE",color,label,recall:false});
+  counterState[i].done=true; updateButtons(i);
+}
+
+// ✅ RECALL FUNCTION (fixed)
+function recallQueue(i){
+  const el=document.getElementById(`queue${i}`);
+  const currentNumber = el.textContent;
+  if(currentNumber !== "DONE") {
+    const color=counterState[i].color;
+    const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+    db.ref(`/computers/${i}`).update({ recall:true });
+    el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
   }
-  document.getElementById(`next${id}`).disabled = false;
-  document.getElementById(`done${id}`).disabled = true;
-  document.getElementById(`transpose${id}`).disabled = true;
-  document.getElementById('selection-overlay').style.display='none';
 }
 
-function showSelectionOverlay(){
-  document.getElementById('selection-overlay').style.display='flex';
-  for(let i=1;i<=5;i++){
-    document.getElementById(`comp${i}`).style.display='flex';
-  }
-}
+// TRANSPOSE
+function transposeQueue(i){
+  if(!counterState[i].done) return;
+  const oldColor = counterState[i].color;
+  const newColor = oldColor==='green'?'red':'green';
+  const label = newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
 
-function showAdminLogin(){
-  document.getElementById('selection-overlay').style.display='none';
-  document.getElementById('admin-login-overlay').style.display='flex';
-}
-
-function loginAdmin(){
-  const user=document.getElementById('adminUser').value;
-  const pass=document.getElementById('adminPass').value;
-  if(user==='a' && pass==='a'){
-    isAdmin=true;
-    myCounter=null;
-    document.getElementById('admin-login-overlay').style.display='none';
-    document.getElementById('admin-panel').style.display='block';
-    for(let i=1;i<=5;i++){
-      document.getElementById(`comp${i}`).style.display='flex';
-      document.getElementById(`next${i}`).disabled=false;
-      document.getElementById(`done${i}`).disabled=false;
-      document.getElementById(`transpose${i}`).disabled=false;
-    }
-  } else {
-    document.getElementById('adminError').style.display='block';
-  }
-}
-
-// Animate numbers
-function animateNumber(numEl){
-  numEl.classList.add('animate');
-  setTimeout(()=>{ numEl.classList.remove('animate'); },400);
-}
-
-// Next queue
-function nextQueue(id){
-  if(myCounter!==id && !isAdmin) return;
-  if(activeStatus[id]) return;
-  const color=colorStatus[id];
-  db.ref(`/series/${color}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
-    if(committed){
-      const numEl=document.getElementById(`queue${id}`);
-      lastNumber[id]=snap.val();
-      numEl.textContent=snap.val();
-      numEl.classList.remove('done');
-      animateNumber(numEl);
-      activeStatus[id]=true;
-      document.getElementById(`next${id}`).disabled=true;
-      document.getElementById(`done${id}`).disabled=false;
-      document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
-    }
-  });
-}
-
-// Done queue
-function doneQueue(id){
-  if(myCounter!==id && !isAdmin) return;
-  const numEl=document.getElementById(`queue${id}`);
-  if(!lastNumber[id]) return;
-  numEl.textContent='DONE';
-  numEl.classList.add('done');
-  activeStatus[id]=false;
-  document.getElementById(`next${id}`).disabled=false;
-  document.getElementById(`done${id}`).disabled=true;
-  document.getElementById(`transpose${id}`).disabled=false;
-  updateDashboard(id,lastNumber[id]);
-}
-
-// Transpose queue
-function transposeQueue(id){
-  if(myCounter!==id && !isAdmin) return;
-  const comp=document.getElementById(`comp${id}`);
-  const label=document.getElementById(`label${id}`);
-  const currentColor=colorStatus[id];
-  const newColor=currentColor==='green'?'red':'green';
-  label.textContent=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
-  comp.classList.remove(currentColor);
+  // Update counter card style and label
+  const comp = document.getElementById(`comp${i}`);
+  comp.classList.remove(oldColor);
   comp.classList.add(newColor);
-  colorStatus[id]=newColor;
-  db.ref(`/series/${newColor}`).transaction(current=>(current||0)+1,(err,committed,snap)=>{
-    if(committed){
-      const numEl=document.getElementById(`queue${id}`);
-      lastNumber[id]=snap.val();
-      numEl.textContent=snap.val();
-      numEl.classList.remove('done');
-      animateNumber(numEl);
-      activeStatus[id]=true;
-      document.getElementById(`next${id}`).disabled=true;
-      document.getElementById(`done${id}`).disabled=false;
-      document.getElementById(`transpose${id}`).disabled=true;
-      updateDashboard(id,snap.val());
-    }
+  document.getElementById(`label${i}`).textContent = label; // <-- update lane label visually
+
+  // Increment series in new lane and update number
+  db.ref(`/series/${newColor}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{
+    if(c) updateCounterDisplay(i,snap.val(),newColor,label);
   });
 }
 
-// Reset queues
+// RESET ALL
 function resetQueues(){
-  if(!isAdmin) return;
-  if(!confirm("Reset all series to 0?")) return;
-  db.ref('/series/green').set(0);
-  db.ref('/series/red').set(0);
-  for(let i=1;i<=5;i++){
-    const numEl=document.getElementById(`queue${i}`);
-    numEl.textContent=0;
-    numEl.classList.remove('done');
-    activeStatus[i]=false;
-    lastNumber[i]=0;
-    const comp=document.getElementById(`comp${i}`);
-    comp.classList.remove('green','red');
-    comp.classList.add(colorStatus[i]);
-    document.getElementById(`label${i}`).textContent=colorStatus[i]==='green'?'REGULAR LANE':'PRIORITY LANE';
-    document.getElementById(`next${i}`).disabled=false;
-    document.getElementById(`done${i}`).disabled=true;
-    document.getElementById(`transpose${i}`).disabled=true;
-    updateDashboard(i,0);
+  if(confirm("Reset all counters and lanes to 0?")){
+    db.ref('/series/green').set(0); db.ref('/series/red').set(0);
+    for(let i=1;i<=5;i++){
+      const color=i<=3?'green':'red';
+      const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+      updateCounterDisplay(i,0,color,label);
+      document.getElementById(`queue${i}`).classList.remove('done');
+    }
   }
 }
 
-// Set number manually from admin
+// ADMIN SET NUMBER
 function setNumber(){
-  const lane = document.getElementById('laneSelect').value;
-  const counter = parseInt(document.getElementById('counterSelect').value);
-  const number = parseInt(document.getElementById('numberInput').value);
-  if(isNaN(number)) return alert("Please enter a valid number");
-  lastNumber[counter] = number;
-  colorStatus[counter] = lane;
-  const numEl = document.getElementById(`queue${counter}`);
-  numEl.textContent = number;
-  numEl.classList.remove('done');
-  const comp = document.getElementById(`comp${counter}`);
-  comp.classList.remove('green','red');
-  comp.classList.add(lane);
-  document.getElementById(`label${counter}`).textContent = lane==='green'?'REGULAR LANE':'PRIORITY LANE';
-  db.ref(`/series/${lane}`).set(number);
-  updateDashboard(counter, number);
-  animateNumber(numEl);
-  document.getElementById('numberInput').value = '';
+  const i=parseInt(document.getElementById('counterSelect').value);
+  const color=document.getElementById('laneSelect').value;
+  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  const num=parseInt(document.getElementById('numberInput').value)||0;
+  updateCounterDisplay(i,num,color,label);
+  db.ref(`/series/${color}`).set(num);
+  document.getElementById('numberInput').value='';
 }
 
-// Update dashboard
-function updateDashboard(id, number){
-  const label=document.getElementById(`label${id}`).textContent;
-  db.ref(`/computers/${id}`).set({number:number,color:colorStatus[id],label:label});
+// LOAD EXISTING NUMBERS FROM FIREBASE
+for(let i=1;i<=5;i++){
+  db.ref(`/computers/${i}`).on('value',snap=>{
+    const data=snap.val();
+    if(data){
+      const el=document.getElementById(`queue${i}`);
+      el.textContent=data.number;
+      if(data.number==="DONE") el.classList.add('done'); else el.classList.remove('done');
+      counterState[i].done=(data.number==="DONE");
+      counterState[i].color=data.color||counterState[i].color;
+      updateButtons(i);
+    }
+  });
 }
 </script>
 </body>
