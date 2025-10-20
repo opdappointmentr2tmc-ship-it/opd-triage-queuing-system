@@ -5,94 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Queue Dashboard</title>
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-html, body {
-  width: 100%;
-  height: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  overflow: hidden;
-}
-body {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: 1fr;
-  width: 100%;
-  height: 100%;
-  gap: 4px;
-  padding: 4px;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background-color: #f4f4f4; overflow: hidden; }
+body { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 4px; padding: 4px; }
+
 .computer-display {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 1vw;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-  border: 0.8vw solid #28a745;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  border-radius: 1vw; box-shadow: 0 6px 12px rgba(0,0,0,0.2); border: 0.8vw solid #28a745;
   padding: 2vh 1vw;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  opacity: 0; transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
-.computer-display.green {
-  border-color: #28a745;
-  background-color: #e9ffe9;
+.computer-display.show {
+  opacity: 1; transform: scale(1);
 }
-.computer-display.red {
-  border-color: #dc3545;
-  background-color: #ffe9e9;
-}
-.computer-title {
-  font-size: 3vw;
-  font-weight: bold;
-  text-align: center;
-}
-.queue-number {
-  font-size: 7vw;
-  font-weight: 900;
-  color: #111;
-  text-align: center;
-  line-height: 1;
-  word-break: break-word;
-  transition: transform 0.4s ease, color 0.4s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
-.queue-number.highlight {
-  color: #ff0000;
-  transform: scale(1.2);
-}
-.queue-label {
-  font-size: 2.5vw;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 1vh;
-}
+.computer-display.green { border-color: #28a745; background-color: #e9ffe9; }
+.computer-display.red { border-color: #dc3545; background-color: #ffe9e9; }
+
+.computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
+.queue-number { font-size: 7vw; font-weight: 900; color: #111; text-align: center; line-height: 1; word-break: break-word;
+               transition: transform 0.4s ease, color 0.4s ease; display: flex; justify-content: center; align-items: center; height: 100%; }
+.queue-number.highlight { color: #ff0000; transform: scale(1.2); }
+.queue-label { font-size: 2.5vw; font-weight: bold; text-align: center; margin-top: 1vh; }
+
 /* Responsive adjustments */
-@media (max-width: 1600px) {
-  .queue-number { font-size: 6vw; }
-  .computer-title { font-size: 2.5vw; }
-  .queue-label { font-size: 2vw; }
-}
-@media (max-width: 1200px) {
-  .queue-number { font-size: 5vw; }
-  .computer-title { font-size: 2vw; }
-  .queue-label { font-size: 1.8vw; }
-}
-@media (max-width: 800px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, 1fr);
-  }
-  .queue-number { font-size: 12vw; }
-  .computer-title { font-size: 4vw; }
-  .queue-label { font-size: 3vw; }
-}
+@media (max-width: 1600px) { .queue-number { font-size: 6vw; } .computer-title { font-size: 2.5vw; } .queue-label { font-size: 2vw; } }
+@media (max-width: 1200px) { .queue-number { font-size: 5vw; } .computer-title { font-size: 2vw; } .queue-label { font-size: 1.8vw; } }
+@media (max-width: 800px) { body { grid-template-columns: 1fr; grid-template-rows: repeat(5, 1fr); } .queue-number { font-size: 12vw; } .computer-title { font-size: 4vw; } .queue-label { font-size: 3vw; } }
 </style>
 </head>
 <body>
@@ -103,131 +42,128 @@ body {
   <div class="queue-number" id="queue1">0</div>
   <div class="queue-label">REGULAR LANE</div>
 </div>
-
 <div class="computer-display green" id="comp2">
   <div class="computer-title">Counter 2</div>
   <div class="queue-number" id="queue2">0</div>
   <div class="queue-label">REGULAR LANE</div>
 </div>
-
 <div class="computer-display green" id="comp3">
   <div class="computer-title">Counter 3</div>
   <div class="queue-number" id="queue3">0</div>
   <div class="queue-label">REGULAR LANE</div>
 </div>
-
 <div class="computer-display red" id="comp4">
   <div class="computer-title">Counter 4</div>
   <div class="queue-number" id="queue4">0</div>
   <div class="queue-label">PRIORITY LANE</div>
 </div>
-
 <div class="computer-display red" id="comp5">
   <div class="computer-title">Counter 5</div>
   <div class="queue-number" id="queue5">0</div>
   <div class="queue-label">PRIORITY LANE</div>
 </div>
 
-<!-- Firebase + Speech -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDq7MaECqAk",
+  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
   authDomain: "queuesystem-80ce7.firebaseapp.com",
   databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "queuesystem-80ce7",
-  storageBucket: "queuesystem-80ce7.firebasestorage.app",
+  storageBucket: "queuesystem-80ce7.appspot.com",
   messagingSenderId: "399130001823",
-  appId: "1:399130001823:web:052ecfb12ae9007463bdaa",
-  measurementId: "G-BL87CQKZV6"
+  appId: "1:399130001823:web:052ecfb12ae9007463bdaa"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+</script>
 
-// ====== SPEECH HANDLING ======
-let maleVoices = [];
-let femaleVoices = [];
-let maleIndex = 0;
-let femaleIndex = 0;
-
-function loadVoices() {
-  const allVoices = window.speechSynthesis.getVoices();
-  maleVoices = allVoices.filter(v =>
-    v.name.toLowerCase().includes('male') ||
-    v.name.toLowerCase().includes('daniel') ||
-    v.name.toLowerCase().includes('google uk english male') ||
-    (v.name.toLowerCase().includes('en-gb') && !v.name.toLowerCase().includes('female'))
-  );
-  femaleVoices = allVoices.filter(v =>
-    v.name.toLowerCase().includes('female') ||
-    v.name.toLowerCase().includes('samantha') ||
-    v.name.toLowerCase().includes('victoria') ||
-    v.name.toLowerCase().includes('karen') ||
-    v.name.toLowerCase().includes('google us english female')
-  );
+<!-- AI Voice -->
+<script>
+let maleVoice=null, femaleVoice=null, voicesLoaded=false, speechQueue=[], speaking=false;
+function loadVoices(){ 
+  const voices = speechSynthesis.getVoices(); 
+  if(!voices.length) return; 
+  maleVoice = voices.find(v=>/male|daniel|google uk english male/i.test(v.name)) || voices[0]; 
+  femaleVoice = voices.find(v=>/female|karen|google us english female/i.test(v.name)) || voices[0]; 
+  voicesLoaded = true; 
 }
-if (speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = loadVoices;
-}
-loadVoices();
+speechSynthesis.onvoiceschanged = loadVoices; 
+loadVoices(); 
+setInterval(()=>{if(!voicesLoaded) loadVoices();},5000);
 
-function highlightNumber(el){
-  el.classList.add('highlight');
-  setTimeout(()=> el.classList.remove('highlight'), 800);
+function queueSpeech(text,color){ 
+  speechQueue.push({text,color}); 
+  speechQueue.push({text,color}); 
+  if(!speaking) processSpeechQueue(); 
 }
-
-function getNextVoice(color) {
-  if (color === 'red') {
-    if (femaleVoices.length === 0) return null;
-    const voice = femaleVoices[femaleIndex % femaleVoices.length];
-    femaleIndex++;
-    return voice;
-  } else {
-    if (maleVoices.length === 0) return null;
-    const voice = maleVoices[maleIndex % maleVoices.length];
-    maleIndex++;
-    return voice;
-  }
+function processSpeechQueue(){ 
+  if(!speechQueue.length){ speaking=false; return; } 
+  speaking=true; 
+  const {text,color} = speechQueue.shift(); 
+  const msg = new SpeechSynthesisUtterance(text); 
+  msg.voice = (color==='green') ? maleVoice : femaleVoice; 
+  msg.lang="en-US"; 
+  msg.rate=0.95; msg.pitch=1; msg.volume=1; 
+  msg.onend=()=>{ speaking=false; setTimeout(processSpeechQueue,200); }; 
+  msg.onerror=()=>{ speaking=false; setTimeout(processSpeechQueue,200); }; 
+  speechSynthesis.cancel(); 
+  speechSynthesis.speak(msg); 
 }
-
-function speak(text, color) {
-  const msg = new SpeechSynthesisUtterance(text);
-  msg.voice = getNextVoice(color) || window.speechSynthesis.getVoices()[0];
-  msg.rate = color === 'red' ? 0.9 : 1.05;
-  msg.pitch = color === 'red' ? 1.1 : 1.0;
-  msg.volume = 1;
-  // No cancel to allow multiple counters to announce together
-  window.speechSynthesis.speak(msg);
+function highlightNumber(el){ 
+  el.classList.add('highlight'); 
+  setTimeout(()=>el.classList.remove('highlight'),800); 
 }
+</script>
 
-// ====== FIREBASE LISTENER ======
-for (let i = 1; i <= 5; i++) {
+<!-- Dashboard Logic (All counters visible) -->
+<script>
+const counters = [1,2,3,4,5];
+const fadeDelay = 200;
+const lastNumber = {}; // Track last announced number
+
+counters.forEach((i, idx) => {
+  const compEl = document.getElementById(`comp${i}`);
+  const el = document.getElementById(`queue${i}`);
+  const labelEl = compEl.querySelector('.queue-label');
+
+  // Always show counters with cascading fade-in
+  setTimeout(() => compEl.classList.add('show'), idx * fadeDelay);
+
   db.ref(`/computers/${i}`).on('value', snap => {
-    const data = snap.val();
-    if (data) {
-      const el = document.getElementById(`queue${i}`);
-      const compEl = document.getElementById(`comp${i}`);
-      const labelEl = compEl.querySelector('.queue-label');
+    const data = snap.val(); 
+    if(!data) return;
 
-      // Ignore DONE
-      if (data.number === "DONE" || data.number === "Done") return;
+    const oldNumber = lastNumber[i] || "0";
 
-      const oldNumber = el.textContent;
-      el.textContent = data.number;
+    // Replace "DONE" with placeholder (e.g., "—") for display
+    const displayNumber = (data.number === "DONE") ? "—" : data.number;
+    el.textContent = displayNumber;
 
-      if (oldNumber !== String(data.number)) {
-        highlightNumber(el);
-        const colorName = data.color.toUpperCase();
-        speak(`Now serving, ${colorName} number ${data.number}, please proceed to counter ${i}.`, data.color);
+    compEl.classList.remove('green','red'); 
+    compEl.classList.add(data.color); 
+    labelEl.textContent = data.label;
+
+    // Trigger highlight + speech only if number changed AND is not DONE OR recall is true
+    if(data.recall || (data.number !== oldNumber && data.number !== "DONE")){
+      highlightNumber(el);
+
+      // Only announce if not DONE
+      if(data.number !== "DONE"){
+        const message = data.recall ? 
+          `Now recalling, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.` :
+          `Now serving, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.`;
+        queueSpeech(message);
       }
 
-      compEl.classList.remove('green', 'red');
-      compEl.classList.add(data.color);
-      labelEl.textContent = data.label;
+      if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
     }
+
+    lastNumber[i] = data.number; // store current number for next comparison
   });
-}
+});
 </script>
 </body>
 </html>
