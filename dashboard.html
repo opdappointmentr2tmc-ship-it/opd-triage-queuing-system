@@ -198,6 +198,7 @@ counters.forEach((i, idx) => {
 </script>
 
 <!-- Audio Test (Desktop + Mobile) -->
+<!-- Audio Test (Desktop + Mobile) -->
 <script>
 function runAudioTest() {
   console.log("🔊 Audio test triggered");
@@ -206,38 +207,48 @@ function runAudioTest() {
   queueSpeech("This is a female voice test of the queue system.", "red");
 }
 
+// Detect if running on a mobile device
+function isMobileDevice() {
+  return /android|iphone|ipad|ipod|opera mini|iemobile|mobile/i.test(navigator.userAgent);
+}
+
 // Shift+T for desktop
 window.addEventListener("load", () => {
   document.addEventListener("keydown", (e) => {
     if (e.shiftKey && e.key.toLowerCase() === "t") runAudioTest();
   });
 
-  // Floating Test Button for mobile
-  const btn = document.createElement("button");
-  btn.textContent = "🔊 Test Audio";
-  Object.assign(btn.style, {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    padding: "12px 20px",
-    fontSize: "18px",
-    borderRadius: "12px",
-    border: "none",
-    backgroundColor: "#28a745",
-    color: "white",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-    cursor: "pointer",
-    zIndex: "9999",
-    opacity: "0.8"
-  });
-  btn.addEventListener("click", () => {
-    btn.textContent = "🔈 Testing...";
-    runAudioTest();
-    setTimeout(() => btn.textContent = "🔊 Test Audio", 3000);
-  });
-  document.body.appendChild(btn);
+  // Only show the floating button if on mobile
+  if (isMobileDevice()) {
+    const btn = document.createElement("button");
+    btn.textContent = "🔊 Test Audio";
+    Object.assign(btn.style, {
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      padding: "12px 20px",
+      fontSize: "18px",
+      borderRadius: "12px",
+      border: "none",
+      backgroundColor: "#28a745",
+      color: "white",
+      boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+      cursor: "pointer",
+      zIndex: "9999",
+      opacity: "0.85"
+    });
+
+    btn.addEventListener("click", () => {
+      btn.textContent = "🔈 Testing...";
+      runAudioTest();
+      setTimeout(() => btn.textContent = "🔊 Test Audio", 3000);
+    });
+
+    document.body.appendChild(btn);
+  }
 });
 </script>
 
 </body>
 </html>
+
