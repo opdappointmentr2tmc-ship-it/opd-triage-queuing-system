@@ -165,5 +165,17 @@ counters.forEach((i, idx) => {
   });
 });
 </script>
+  <script>
+// === AUDIO TEST SHORTCUT (Shift + T) ===
+document.addEventListener("keydown", (e) => {
+  if (e.shiftKey && e.key.toLowerCase() === "t") {
+    const testMsg = "This is a test of the queue announcement system.";
+    console.log("🔊 Audio Test Triggered");
+    queueSpeech(testMsg, "green"); // use green (male) voice for testing
+  }
+});
+</script>
+
 </body>
 </html>
+
