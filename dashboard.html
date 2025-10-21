@@ -83,6 +83,7 @@ const db = firebase.database();
 <!-- AI Voice -->
 <script>
 let maleVoice=null, femaleVoice=null, voicesLoaded=false, speechQueue=[], speaking=false;
+
 function loadVoices(){ 
   const voices = speechSynthesis.getVoices(); 
   if(!voices.length) return; 
@@ -122,14 +123,13 @@ function highlightNumber(el){
 <script>
 const counters = [1,2,3,4,5];
 const fadeDelay = 200;
-const lastNumber = {}; // Track last announced number
+const lastNumber = {};
 
 counters.forEach((i, idx) => {
   const compEl = document.getElementById(`comp${i}`);
   const el = document.getElementById(`queue${i}`);
   const labelEl = compEl.querySelector('.queue-label');
 
-  // Always show counters with cascading fade-in
   setTimeout(() => compEl.classList.add('show'), idx * fadeDelay);
 
   db.ref(`/computers/${i}`).on('value', snap => {
@@ -137,8 +137,6 @@ counters.forEach((i, idx) => {
     if(!data) return;
 
     const oldNumber = lastNumber[i] || "0";
-
-    // Replace "DONE" with placeholder (e.g., "—") for display
     const displayNumber = (data.number === "DONE") ? "—" : data.number;
     el.textContent = displayNumber;
 
@@ -146,36 +144,41 @@ counters.forEach((i, idx) => {
     compEl.classList.add(data.color); 
     labelEl.textContent = data.label;
 
-    // Trigger highlight + speech only if number changed AND is not DONE OR recall is true
     if(data.recall || (data.number !== oldNumber && data.number !== "DONE")){
       highlightNumber(el);
-
-      // Only announce if not DONE
       if(data.number !== "DONE"){
         const message = data.recall ? 
           `Now recalling, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.` :
           `Now serving, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.`;
-        queueSpeech(message);
+        queueSpeech(message, data.color);
       }
-
       if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
     }
-
-    lastNumber[i] = data.number; // store current number for next comparison
+    lastNumber[i] = data.number;
   });
 });
 </script>
-  <script>
-// === AUDIO TEST SHORTCUT (Shift + T) ===
-document.addEventListener("keydown", (e) => {
-  if (e.shiftKey && e.key.toLowerCase() === "t") {
-    const testMsg = "This is a test of the queue announcement system.";
-    console.log("🔊 Audio Test Triggered");
-    queueSpeech(testMsg, "green"); // use green (male) voice for testing
-  }
+
+<!-- Audio Test Shortcut -->
+<script>
+window.addEventListener("load", () => {
+  document.addEventListener("keydown", async (e) => {
+    if (e.shiftKey && e.key.toLowerCase() === "t") {
+      console.log("🔊 Shift+T pressed – testing both voices...");
+
+      // Force a small user gesture to unlock audio
+      if (!speechSynthesis.getVoices().length) {
+        await new Promise(r => setTimeout(r, 500));
+        loadVoices();
+      }
+
+      // Test both male (green) and female (red) voices
+      queueSpeech("This is a male voice test of the queue system.", "green");
+      queueSpeech("This is a female voice test of the queue system.", "red");
+    }
+  });
 });
 </script>
 
 </body>
 </html>
-
