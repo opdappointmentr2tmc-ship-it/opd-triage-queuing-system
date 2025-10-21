@@ -205,20 +205,30 @@ function runAudioTest() {
   if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
   queueSpeech("This is a male voice test of the queue system.", "green");
   queueSpeech("This is a female voice test of the queue system.", "red");
+}<!-- Audio Test (Desktop + Mobile, with strict detection) -->
+<script>
+function runAudioTest() {
+  console.log("🔊 Audio test triggered");
+  if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
+  queueSpeech("This is a male voice test of the queue system.", "green");
+  queueSpeech("This is a female voice test of the queue system.", "red");
 }
 
-// Detect if running on a mobile device
+// ✅ Strict mobile detection (must be touch device + mobile user agent)
 function isMobileDevice() {
-  return /android|iphone|ipad|ipod|opera mini|iemobile|mobile/i.test(navigator.userAgent);
+  const ua = navigator.userAgent.toLowerCase();
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobileUA = /android|iphone|ipad|ipod/i.test(ua);
+  return hasTouch && isMobileUA;
 }
 
-// Shift+T for desktop
 window.addEventListener("load", () => {
+  // Shift+T for desktop
   document.addEventListener("keydown", (e) => {
     if (e.shiftKey && e.key.toLowerCase() === "t") runAudioTest();
   });
 
-  // Only show the floating button if on mobile
+  // Add Test Audio button only for real mobile devices
   if (isMobileDevice()) {
     const btn = document.createElement("button");
     btn.textContent = "🔊 Test Audio";
@@ -245,10 +255,15 @@ window.addEventListener("load", () => {
     });
 
     document.body.appendChild(btn);
+
+    // Optional: hide the button automatically after 10 seconds
+    setTimeout(() => btn.remove(), 10000);
   }
 });
 </script>
 
+
 </body>
 </html>
+
 
