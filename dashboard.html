@@ -6,32 +6,70 @@
 <title>Queue Dashboard</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background-color: #f4f4f4; overflow: hidden; }
-body { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 4px; padding: 4px; }
-
+html, body {
+  width: 100%; height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  overflow: hidden;
+}
+body {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: 1fr;
+  gap: 4px;
+  padding: 4px;
+}
 .computer-display {
-  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-  border-radius: 1vw; box-shadow: 0 6px 12px rgba(0,0,0,0.2); border: 0.8vw solid #28a745;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 1vw;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  border: 0.8vw solid #28a745;
   padding: 2vh 1vw;
-  opacity: 0; transform: scale(0.9);
+  opacity: 0;
+  transform: scale(0.9);
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
-.computer-display.show {
-  opacity: 1; transform: scale(1);
-}
+.computer-display.show { opacity: 1; transform: scale(1); }
 .computer-display.green { border-color: #28a745; background-color: #e9ffe9; }
 .computer-display.red { border-color: #dc3545; background-color: #ffe9e9; }
 
 .computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
-.queue-number { font-size: 7vw; font-weight: 900; color: #111; text-align: center; line-height: 1; word-break: break-word;
-               transition: transform 0.4s ease, color 0.4s ease; display: flex; justify-content: center; align-items: center; height: 100%; }
+.queue-number {
+  font-size: 7vw;
+  font-weight: 900;
+  color: #111;
+  text-align: center;
+  line-height: 1;
+  word-break: break-word;
+  transition: transform 0.4s ease, color 0.4s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
 .queue-number.highlight { color: #ff0000; transform: scale(1.2); }
 .queue-label { font-size: 2.5vw; font-weight: bold; text-align: center; margin-top: 1vh; }
 
 /* Responsive adjustments */
-@media (max-width: 1600px) { .queue-number { font-size: 6vw; } .computer-title { font-size: 2.5vw; } .queue-label { font-size: 2vw; } }
-@media (max-width: 1200px) { .queue-number { font-size: 5vw; } .computer-title { font-size: 2vw; } .queue-label { font-size: 1.8vw; } }
-@media (max-width: 800px) { body { grid-template-columns: 1fr; grid-template-rows: repeat(5, 1fr); } .queue-number { font-size: 12vw; } .computer-title { font-size: 4vw; } .queue-label { font-size: 3vw; } }
+@media (max-width: 1600px) {
+  .queue-number { font-size: 6vw; }
+  .computer-title { font-size: 2.5vw; }
+  .queue-label { font-size: 2vw; }
+}
+@media (max-width: 1200px) {
+  .queue-number { font-size: 5vw; }
+  .computer-title { font-size: 2vw; }
+  .queue-label { font-size: 1.8vw; }
+}
+@media (max-width: 800px) {
+  body { grid-template-columns: 1fr; grid-template-rows: repeat(5, 1fr); }
+  .queue-number { font-size: 12vw; }
+  .computer-title { font-size: 4vw; }
+  .queue-label { font-size: 3vw; }
+}
 </style>
 </head>
 <body>
@@ -119,7 +157,7 @@ function highlightNumber(el){
 }
 </script>
 
-<!-- Dashboard Logic (All counters visible) -->
+<!-- Dashboard Logic -->
 <script>
 const counters = [1,2,3,4,5];
 const fadeDelay = 200;
@@ -159,24 +197,45 @@ counters.forEach((i, idx) => {
 });
 </script>
 
-<!-- Audio Test Shortcut -->
+<!-- Audio Test (Desktop + Mobile) -->
 <script>
+function runAudioTest() {
+  console.log("🔊 Audio test triggered");
+  if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
+  queueSpeech("This is a male voice test of the queue system.", "green");
+  queueSpeech("This is a female voice test of the queue system.", "red");
+}
+
+// Shift+T for desktop
 window.addEventListener("load", () => {
-  document.addEventListener("keydown", async (e) => {
-    if (e.shiftKey && e.key.toLowerCase() === "t") {
-      console.log("🔊 Shift+T pressed – testing both voices...");
-
-      // Force a small user gesture to unlock audio
-      if (!speechSynthesis.getVoices().length) {
-        await new Promise(r => setTimeout(r, 500));
-        loadVoices();
-      }
-
-      // Test both male (green) and female (red) voices
-      queueSpeech("This is a male voice test of the queue system.", "green");
-      queueSpeech("This is a female voice test of the queue system.", "red");
-    }
+  document.addEventListener("keydown", (e) => {
+    if (e.shiftKey && e.key.toLowerCase() === "t") runAudioTest();
   });
+
+  // Floating Test Button for mobile
+  const btn = document.createElement("button");
+  btn.textContent = "🔊 Test Audio";
+  Object.assign(btn.style, {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    padding: "12px 20px",
+    fontSize: "18px",
+    borderRadius: "12px",
+    border: "none",
+    backgroundColor: "#28a745",
+    color: "white",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+    cursor: "pointer",
+    zIndex: "9999",
+    opacity: "0.8"
+  });
+  btn.addEventListener("click", () => {
+    btn.textContent = "🔈 Testing...";
+    runAudioTest();
+    setTimeout(() => btn.textContent = "🔊 Test Audio", 3000);
+  });
+  document.body.appendChild(btn);
 });
 </script>
 
