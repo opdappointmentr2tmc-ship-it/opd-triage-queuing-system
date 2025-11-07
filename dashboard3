@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Queue Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------- COUNTERS ------------------- */
+#main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 10px;
+}
+
+.computer-display {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 1vw;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  border: 0.8vw solid #28a745;
+  padding: 3vh 1vw;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+.computer-display.show { opacity: 1; transform: scale(1); }
+.computer-display.green { border-color: #28a745; background-color: #e9ffe9; }
+.computer-display.red { border-color: #dc3545; background-color: #ffe9e9; }
+
+.computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
+
+.queue-number {
+  font-size: 7.5vw;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.4s ease, color 0.4s ease;
+  height: 100%;
+}
+.computer-display.green .queue-number { color: #28a745; }
+.computer-display.red .queue-number { color: #dc3545; }
+
+@keyframes pulseGreen {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #28a745; }
+  50% { transform: scale(1.25); text-shadow: 0 0 2vw #34d058; }
+}
+@keyframes pulseRed {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #dc3545; }
+  50% { transform: scale(1.25); text-shadow: 0 0 2vw #ff5c5c; }
+}
+.queue-number.highlight.green { animation: pulseGreen 0.8s ease-in-out; }
+.queue-number.highlight.red { animation: pulseRed 0.8s ease-in-out; }
+
+.queue-label { font-size: 2vw; font-weight: bold; text-align: center; margin-top: 1vh; }
+
+/* ------------------- ANNOUNCEMENT ------------------- */
+#announcement {
+  width: 100%;
+  background: #ffc107;
+  color: #000;
+  text-align: center;
+  font-weight: bold;
+  font-size: 2.3vw;
+  padding: 2vh 0;
+  border-top: 4px solid #000;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- COUNTERS -->
+<div id="main"></div>
+
+<!-- ANNOUNCEMENT -->
+<div id="announcement">
+  <strong> PAALALA:</strong> ** Kumuha po ng bagong queuing number sa may guard kapag nalagpasan  na ang inyong mga numero **
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
+  authDomain: "queuesystem-80ce7.firebaseapp.com",
+  databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queuesystem-80ce7",
+  storageBucket: "queuesystem-80ce7.appspot.com",
+  messagingSenderId: "399130001823",
+  appId: "1:399130001823:web:052ecfb12ae9007463bdaa"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---------- CREATE COUNTERS ---------- */
+const main = document.getElementById('main');
+for (let i = 1; i <= 5; i++) {
+  const div = document.createElement('div');
+  div.className = 'computer-display ' + (i <= 3 ? 'green' : 'red');
+  div.id = `counter${i}`;
+  div.innerHTML = `
+    <div class="computer-title">Counter ${i}</div>
+    <div class="queue-number" id="num${i}">0</div>
+    <div class="queue-label">${i <= 3 ? 'REGULAR LANE' : 'PRIORITY LANE'}</div>
+  `;
+  main.appendChild(div);
+  setTimeout(() => div.classList.add('show'), i * 150);
+}
+
+/* ---------- HIGHLIGHT ANIMATION ---------- */
+function highlightNumber(el) {
+  const parent = el.closest('.computer-display');
+  const colorClass = parent.classList.contains('red') ? 'red' : 'green';
+  el.classList.add('highlight', colorClass);
+  setTimeout(() => el.classList.remove('highlight', colorClass), 800);
+}
+
+/* ---------- FIREBASE LISTENERS ---------- */
+for (let i = 1; i <= 5; i++) {
+  db.ref(`/computers/${i}`).on('value', snap => {
+    const d = snap.val();
+    if (!d) return;
+    const numEl = document.getElementById(`num${i}`);
+    const counterEl = document.getElementById(`counter${i}`);
+    const labelEl = counterEl.querySelector('.queue-label');
+    numEl.textContent = d.number || "0";
+    counterEl.classList.remove('green', 'red');
+    counterEl.classList.add(d.color || (i <= 3 ? 'green' : 'red'));
+    labelEl.textContent = d.label || (i <= 3 ? 'REGULAR LANE' : 'PRIORITY LANE');
+    highlightNumber(numEl);
+  });
+}
+</script>
+
+</body>
+</html>
