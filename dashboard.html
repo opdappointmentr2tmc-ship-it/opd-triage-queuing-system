@@ -12,13 +12,23 @@ html, body {
   background-color: #f4f4f4;
   overflow: hidden;
 }
+
+/* Grid layout: counters + announcement */
 body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: 1fr;
+  grid-template-rows: 1fr auto;
   gap: 4px;
   padding: 4px;
+  height: 100vh;
 }
+
+/* Counter container allows auto-fit grid layout */
+.counter-container {
+  display: contents;
+}
+
+/* Display cards */
 .computer-display {
   display: flex;
   flex-direction: column;
@@ -37,10 +47,11 @@ body {
 .computer-display.red { border-color: #dc3545; background-color: #ffe9e9; }
 
 .computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
+
+/* Queue number styling */
 .queue-number {
   font-size: 7vw;
   font-weight: 900;
-  color: #111;
   text-align: center;
   line-height: 1;
   word-break: break-word;
@@ -50,8 +61,39 @@ body {
   align-items: center;
   height: 100%;
 }
-.queue-number.highlight { color: #ff0000; transform: scale(1.2); }
+
+/* Match queue number color to the counter color */
+.computer-display.green .queue-number { color: #28a745; }
+.computer-display.red .queue-number { color: #dc3545; }
+
+/* Pulsing glow animation */
+@keyframes pulseGreen {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #28a745; }
+  50% { transform: scale(1.25); text-shadow: 0 0 2vw #34d058; }
+}
+@keyframes pulseRed {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #dc3545; }
+  50% { transform: scale(1.25); text-shadow: 0 0 2vw #ff5c5c; }
+}
+
+/* Apply animation when highlighted */
+.queue-number.highlight.green { animation: pulseGreen 0.8s ease-in-out; }
+.queue-number.highlight.red { animation: pulseRed 0.8s ease-in-out; }
+
 .queue-label { font-size: 2.5vw; font-weight: bold; text-align: center; margin-top: 1vh; }
+
+/* Static Announcement Bar */
+.announcement-bar {
+  grid-column: 1 / -1;
+  background-color: #ffc107;
+  color: #000;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.8vw;
+  padding: 1.2vh 0;
+  border-top: 3px solid #000;
+  align-self: end;
+}
 
 /* Responsive adjustments */
 @media (max-width: 1600px) {
@@ -65,40 +107,54 @@ body {
   .queue-label { font-size: 1.8vw; }
 }
 @media (max-width: 800px) {
-  body { grid-template-columns: 1fr; grid-template-rows: repeat(5, 1fr); }
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, 1fr) auto;
+  }
   .queue-number { font-size: 12vw; }
   .computer-title { font-size: 4vw; }
   .queue-label { font-size: 3vw; }
+  .announcement-bar {
+    font-size: 3.5vw;
+    padding: 1.5vh 0;
+  }
 }
 </style>
 </head>
 <body>
 
-<!-- 5 Counters -->
-<div class="computer-display green" id="comp1">
-  <div class="computer-title">Counter 1</div>
-  <div class="queue-number" id="queue1">0</div>
-  <div class="queue-label">REGULAR LANE</div>
+<!-- Counters -->
+<div class="counter-container">
+  <div class="computer-display green" id="comp1">
+    <div class="computer-title">Counter 1</div>
+    <div class="queue-number" id="queue1">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display green" id="comp2">
+    <div class="computer-title">Counter 2</div>
+    <div class="queue-number" id="queue2">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display green" id="comp3">
+    <div class="computer-title">Counter 3</div>
+    <div class="queue-number" id="queue3">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display red" id="comp4">
+    <div class="computer-title">Counter 4</div>
+    <div class="queue-number" id="queue4">0</div>
+    <div class="queue-label">PRIORITY LANE</div>
+  </div>
+  <div class="computer-display red" id="comp5">
+    <div class="computer-title">Counter 5</div>
+    <div class="queue-number" id="queue5">0</div>
+    <div class="queue-label">PRIORITY LANE</div>
+  </div>
 </div>
-<div class="computer-display green" id="comp2">
-  <div class="computer-title">Counter 2</div>
-  <div class="queue-number" id="queue2">0</div>
-  <div class="queue-label">REGULAR LANE</div>
-</div>
-<div class="computer-display green" id="comp3">
-  <div class="computer-title">Counter 3</div>
-  <div class="queue-number" id="queue3">0</div>
-  <div class="queue-label">REGULAR LANE</div>
-</div>
-<div class="computer-display red" id="comp4">
-  <div class="computer-title">Counter 4</div>
-  <div class="queue-number" id="queue4">0</div>
-  <div class="queue-label">PRIORITY LANE</div>
-</div>
-<div class="computer-display red" id="comp5">
-  <div class="computer-title">Counter 5</div>
-  <div class="queue-number" id="queue5">0</div>
-  <div class="queue-label">PRIORITY LANE</div>
+
+<!-- Static Announcement Bar -->
+<div class="announcement-bar">
+  🩺 * Kumuha po ng panibagong queuing number sa may guard kapag nalagpasan na ang inyong numero.
 </div>
 
 <!-- Firebase -->
@@ -151,9 +207,13 @@ function processSpeechQueue(){
   speechSynthesis.cancel(); 
   speechSynthesis.speak(msg); 
 }
+
+/* Highlight animation with pulsing glow */
 function highlightNumber(el){ 
-  el.classList.add('highlight'); 
-  setTimeout(()=>el.classList.remove('highlight'),800); 
+  const parent = el.closest('.computer-display');
+  const colorClass = parent.classList.contains('red') ? 'red' : 'green';
+  el.classList.add('highlight', colorClass);
+  setTimeout(()=>el.classList.remove('highlight', colorClass),800); 
 }
 </script>
 
@@ -198,14 +258,6 @@ counters.forEach((i, idx) => {
 </script>
 
 <!-- Audio Test (Desktop + Mobile) -->
-<!-- Audio Test (Desktop + Mobile) -->
-<script>
-function runAudioTest() {
-  console.log("🔊 Audio test triggered");
-  if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
-  queueSpeech("This is a male voice test of the queue system.", "green");
-  queueSpeech("This is a female voice test of the queue system.", "red");
-}<!-- Audio Test (Desktop + Mobile, with strict detection) -->
 <script>
 function runAudioTest() {
   console.log("🔊 Audio test triggered");
@@ -214,7 +266,6 @@ function runAudioTest() {
   queueSpeech("This is a female voice test of the queue system.", "red");
 }
 
-// ✅ Strict mobile detection (must be touch device + mobile user agent)
 function isMobileDevice() {
   const ua = navigator.userAgent.toLowerCase();
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -223,12 +274,10 @@ function isMobileDevice() {
 }
 
 window.addEventListener("load", () => {
-  // Shift+T for desktop
   document.addEventListener("keydown", (e) => {
     if (e.shiftKey && e.key.toLowerCase() === "t") runAudioTest();
   });
 
-  // Add Test Audio button only for real mobile devices
   if (isMobileDevice()) {
     const btn = document.createElement("button");
     btn.textContent = "🔊 Test Audio";
@@ -255,15 +304,10 @@ window.addEventListener("load", () => {
     });
 
     document.body.appendChild(btn);
-
-    // Optional: hide the button automatically after 10 seconds
     setTimeout(() => btn.remove(), 10000);
   }
 });
 </script>
 
-
 </body>
 </html>
-
-
