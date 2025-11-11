@@ -8,22 +8,27 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   width: 100%; height: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Arial, sans-serif;
   background-color: #f4f4f4;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
-/* ------------------- COUNTERS ------------------- */
-#main {
-  flex: 1;
+/* Grid layout: counters + announcement (7/8 counters, 1/8 announcement) */
+body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  padding: 10px;
+  grid-template-rows: 7fr 1fr; /* Top 7/8 counters, bottom 1/8 announcement */
+  gap: 4px;
+  padding: 4px;
+  height: 100vh;
 }
 
+/* Counter container allows auto-fit grid layout */
+.counter-container {
+  display: contents;
+}
+
+/* Display cards */
 .computer-display {
   display: flex;
   flex-direction: column;
@@ -32,7 +37,7 @@ html, body {
   border-radius: 1vw;
   box-shadow: 0 6px 12px rgba(0,0,0,0.2);
   border: 0.8vw solid #28a745;
-  padding: 3vh 1vw;
+  padding: 2vh 1vw;
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, background-color 0.3s ease;
@@ -43,20 +48,25 @@ html, body {
 
 .computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
 
+/* Queue number styling */
 .queue-number {
-  font-size: 7.5vw;
+  font-size: 7vw;
   font-weight: 900;
   text-align: center;
   line-height: 1;
+  word-break: break-word;
+  transition: transform 0.4s ease, color 0.4s ease;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.4s ease, color 0.4s ease;
   height: 100%;
 }
+
+/* Match queue number color to the counter color */
 .computer-display.green .queue-number { color: #28a745; }
 .computer-display.red .queue-number { color: #dc3545; }
 
+/* Pulsing glow animation */
 @keyframes pulseGreen {
   0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #28a745; }
   50% { transform: scale(1.25); text-shadow: 0 0 2vw #34d058; }
@@ -65,110 +75,93 @@ html, body {
   0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #dc3545; }
   50% { transform: scale(1.25); text-shadow: 0 0 2vw #ff5c5c; }
 }
+
+/* Apply animation when highlighted */
 .queue-number.highlight.green { animation: pulseGreen 0.8s ease-in-out; }
 .queue-number.highlight.red { animation: pulseRed 0.8s ease-in-out; }
 
-.queue-label { font-size: 2vw; font-weight: bold; text-align: center; margin-top: 1vh; }
+.queue-label { font-size: 2.5vw; font-weight: bold; text-align: center; margin-top: 1vh; }
 
-/* ------------------- OUT WHEN CALLED ------------------- */
-#outSection {
-  background: #fff;
-  padding: 15px 0 5px;
+/* Announcement Bar (1/8 screen) */
+.announcement-bar {
+  grid-column: 1 / -1;
+  grid-row: 2 / 3;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
-}
-#outSection h2 {
-  font-size: 2.4vw;
-  font-weight: bold;
-  color: #000;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-}
-#outWhenCalled {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: 90%;
-}
-.outColumn {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  color: #fff;
-  border-radius: 12px;
-  min-height: 100px;
-}
-.outColumn.green { background: #28a745; }
-.outColumn.red { background: #dc3545; }
-
-.outColumn h3 {
-  font-size: 1.8vw;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.outNumbersWrapper {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  max-width: 100%;
-}
-.outNumber {
-  font-size: 2.5vw;
-  font-weight: 800;
-  background: rgba(255,255,255,0.15);
-  padding: 6px 16px;
-  border-radius: 10px;
-}
-
-/* ------------------- ANNOUNCEMENT (BIGGER VERSION) ------------------- */
-#announcement {
-  width: 100%;
-  background: #ffc107;
+  background-color: #ffc107;
   color: #000;
   text-align: center;
   font-weight: bold;
-  font-size: 2.3vw;   /* ⬆️ Increased from 1.8vw */
-  padding: 2vh 0;     /* ⬆️ More padding for a taller bar */
-  border-top: 4px solid #000;
-  letter-spacing: 1px;
+  font-size: 10px; /* initial small, will grow dynamically */
+  padding: 0 2vw;
+  border-top: 3px solid #000;
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1600px) {
+  .queue-number { font-size: 6vw; }
+  .computer-title { font-size: 2.5vw; }
+  .queue-label { font-size: 2vw; }
+}
+@media (max-width: 1200px) {
+  .queue-number { font-size: 5vw; }
+  .computer-title { font-size: 2vw; }
+  .queue-label { font-size: 1.8vw; }
+}
+@media (max-width: 800px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, 7fr) 1fr;
+  }
+  .queue-number { font-size: 12vw; }
+  .computer-title { font-size: 4vw; }
+  .queue-label { font-size: 3vw; }
+  .announcement-bar { padding: 0 2vw; }
 }
 </style>
 </head>
 <body>
 
-<!-- COUNTERS -->
-<div id="main"></div>
-
-<!-- OUT WHEN CALLED BELOW COUNTERS -->
-<div id="outSection">
-  <h2>OUT WHEN CALLED</h2>
-  <div id="outWhenCalled">
-    <div class="outColumn green">
-      <h3>REGULAR LANE</h3>
-      <div class="outNumbersWrapper" id="outGreen"></div>
-    </div>
-    <div class="outColumn red">
-      <h3>PRIORITY LANE</h3>
-      <div class="outNumbersWrapper" id="outRed"></div>
-    </div>
+<!-- Counters -->
+<div class="counter-container">
+  <div class="computer-display green" id="comp1">
+    <div class="computer-title">Counter 1</div>
+    <div class="queue-number" id="queue1">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display green" id="comp2">
+    <div class="computer-title">Counter 2</div>
+    <div class="queue-number" id="queue2">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display green" id="comp3">
+    <div class="computer-title">Counter 3</div>
+    <div class="queue-number" id="queue3">0</div>
+    <div class="queue-label">REGULAR LANE</div>
+  </div>
+  <div class="computer-display red" id="comp4">
+    <div class="computer-title">Counter 4</div>
+    <div class="queue-number" id="queue4">0</div>
+    <div class="queue-label">PRIORITY LANE</div>
+  </div>
+  <div class="computer-display red" id="comp5">
+    <div class="computer-title">Counter 5</div>
+    <div class="queue-number" id="queue5">0</div>
+    <div class="queue-label">PRIORITY LANE</div>
   </div>
 </div>
 
-<!-- ANNOUNCEMENT -->
-<div id="announcement">
-  <strong> PAALALA: </strong> * Kumuha po ng bagong queuing number sa may guard kapag nalagpasan na ang inyong numero *
+<!-- Announcement Bar -->
+<div class="announcement-bar" id="announcement">
+  <b>PAALALA: Kumuha ng panibagong queuing number sa may guard kapag nalagpasan na ang inyong mga numero.</b>
 </div>
 
-<!-- FIREBASE -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
@@ -183,63 +176,146 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+</script>
 
-/* ---------- CREATE COUNTERS ---------- */
-const main = document.getElementById('main');
-for (let i = 1; i <= 5; i++) {
-  const div = document.createElement('div');
-  div.className = 'computer-display ' + (i <= 3 ? 'green' : 'red');
-  div.id = `counter${i}`;
-  div.innerHTML = `
-    <div class="computer-title">Counter ${i}</div>
-    <div class="queue-number" id="num${i}">0</div>
-    <div class="queue-label">${i <= 3 ? 'REGULAR LANE' : 'PRIORITY LANE'}</div>
-  `;
-  main.appendChild(div);
-  setTimeout(() => div.classList.add('show'), i * 150);
+<!-- AI Voice -->
+<script>
+let maleVoice=null, femaleVoice=null, voicesLoaded=false, speechQueue=[], speaking=false;
+
+function loadVoices(){ 
+  const voices = speechSynthesis.getVoices(); 
+  if(!voices.length) return; 
+  maleVoice = voices.find(v=>/male|daniel|google uk english male/i.test(v.name)) || voices[0]; 
+  femaleVoice = voices.find(v=>/female|karen|google us english female/i.test(v.name)) || voices[0]; 
+  voicesLoaded = true; 
+}
+speechSynthesis.onvoiceschanged = loadVoices; 
+loadVoices(); 
+setInterval(()=>{if(!voicesLoaded) loadVoices();},5000);
+
+function queueSpeech(text,color){ 
+  speechQueue.push({text,color}); 
+  if(!speaking) processSpeechQueue(); 
+}
+function processSpeechQueue(){ 
+  if(!speechQueue.length){ speaking=false; return; } 
+  speaking=true; 
+  const {text,color} = speechQueue.shift(); 
+  const msg = new SpeechSynthesisUtterance(text); 
+  msg.voice = (color==='green') ? maleVoice : femaleVoice; 
+  msg.lang="en-US"; 
+  msg.rate=0.95; msg.pitch=1; msg.volume=1; 
+  msg.onend=()=>{ speaking=false; setTimeout(processSpeechQueue,200); }; 
+  msg.onerror=()=>{ speaking=false; setTimeout(processSpeechQueue,200); }; 
+  speechSynthesis.cancel(); 
+  speechSynthesis.speak(msg); 
 }
 
-/* ---------- RENDER OUT WHEN CALLED ---------- */
-function renderOutWhenCalled() {
-  db.ref('/outWhenCalled').on('value', snap => {
-    const data = snap.val() || {};
-    let greens = [...(new Set(data.green || []))];
-    let reds = [...(new Set(data.red || []))];
-    greens = greens.slice(-10);
-    reds = reds.slice(-10);
-    db.ref('/outWhenCalled/green').set(greens);
-    db.ref('/outWhenCalled/red').set(reds);
-    document.getElementById('outGreen').innerHTML =
-      greens.map(n => `<div class="outNumber">${n}</div>`).join('');
-    document.getElementById('outRed').innerHTML =
-      reds.map(n => `<div class="outNumber">${n}</div>`).join('');
-  });
-}
-renderOutWhenCalled();
-
-/* ---------- HIGHLIGHT ANIMATION ---------- */
-function highlightNumber(el) {
+/* Highlight animation */
+function highlightNumber(el){ 
   const parent = el.closest('.computer-display');
   const colorClass = parent.classList.contains('red') ? 'red' : 'green';
   el.classList.add('highlight', colorClass);
-  setTimeout(() => el.classList.remove('highlight', colorClass), 800);
+  setTimeout(()=>el.classList.remove('highlight', colorClass),800); 
+}
+</script>
+
+<!-- Dashboard Logic -->
+<script>
+const counters = [1,2,3,4,5];
+const fadeDelay = 200;
+const lastNumber = {};
+
+counters.forEach((i, idx) => {
+  const compEl = document.getElementById(`comp${i}`);
+  const el = document.getElementById(`queue${i}`);
+  const labelEl = compEl.querySelector('.queue-label');
+
+  setTimeout(() => compEl.classList.add('show'), idx * fadeDelay);
+
+  db.ref(`/computers/${i}`).on('value', snap => {
+    const data = snap.val(); 
+    if(!data) return;
+
+    const oldNumber = lastNumber[i] || "0";
+    const displayNumber = (data.number === "DONE") ? "—" : data.number;
+    el.textContent = displayNumber;
+
+    compEl.classList.remove('green','red'); 
+    compEl.classList.add(data.color); 
+    labelEl.textContent = data.label;
+
+    if(data.recall || (data.number !== oldNumber && data.number !== "DONE")){
+      highlightNumber(el);
+      if(data.number !== "DONE"){
+        const message = data.recall ? 
+          `Now recalling, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.` :
+          `Now serving, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.`;
+        queueSpeech(message, data.color);
+      }
+      if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
+    }
+    lastNumber[i] = data.number;
+  });
+});
+
+/* Dynamically scale announcement text to fill bar height with multi-line support */
+const announcementEl = document.getElementById('announcement');
+function fitAnnouncementText() {
+  if (!announcementEl) return;
+  
+  const barHeight = announcementEl.clientHeight;
+  let fontSize = Math.floor(barHeight * 0.8); // start smaller to avoid overshoot
+  announcementEl.style.fontSize = fontSize + "px";
+
+  while (announcementEl.scrollHeight > barHeight && fontSize > 10) {
+    fontSize -= 1;
+    announcementEl.style.fontSize = fontSize + "px";
+  }
 }
 
-/* ---------- FIREBASE LISTENERS ---------- */
-for (let i = 1; i <= 5; i++) {
-  db.ref(`/computers/${i}`).on('value', snap => {
-    const d = snap.val();
-    if (!d) return;
-    const numEl = document.getElementById(`num${i}`);
-    const counterEl = document.getElementById(`counter${i}`);
-    const labelEl = counterEl.querySelector('.queue-label');
-    numEl.textContent = d.number || "0";
-    counterEl.classList.remove('green', 'red');
-    counterEl.classList.add(d.color || (i <= 3 ? 'green' : 'red'));
-    labelEl.textContent = d.label || (i <= 3 ? 'REGULAR LANE' : 'PRIORITY LANE');
-    highlightNumber(numEl);
-  });
+window.addEventListener('load', () => {
+  fitAnnouncementText();
+  runAudioTest(); // run audio test on load
+});
+window.addEventListener('resize', fitAnnouncementText);
+</script>
+
+<!-- Audio Test -->
+<script>
+function runAudioTest() {
+  if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
+  queueSpeech("HELLO!", "green");
+  queueSpeech("GOOD MORNING..", "red");
 }
+</script>
+<!-- Start Dashboard Button -->
+<button id="startBtn" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 40px;
+  font-size: 24px;
+  border-radius: 12px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 9999;
+">
+Start Dashboard
+</button>
+
+<script>
+const startBtn = document.getElementById('startBtn');
+startBtn.addEventListener('click', () => {
+  // Hide button
+  startBtn.style.display = 'none';
+  // Run initial audio test
+  runAudioTest();
+});
 </script>
 
 </body>
