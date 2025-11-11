@@ -5,46 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Queue System</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
-body{height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(-45deg,#1e3c72,#2a5298,#1e3c72,#2a5298);background-size:400%400%;animation:gradientBG 15s ease infinite;overflow:hidden}
-@keyframes gradientBG{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
-#selection-overlay,#admin-login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;background:rgba(0,0,0,0.85)}
-.overlay-box{background:rgba(255,255,255,0.15);backdrop-filter:blur(15px);padding:40px 30px;border-radius:25px;text-align:center;min-width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;gap:20px;color:#fff}
-.overlay-box button{padding:18px 30px;margin:8px;border:none;border-radius:15px;cursor:pointer;font-size:18px;font-weight:bold;color:#fff;background:linear-gradient(135deg,#4facfe,#00f2fe);box-shadow:0 6px 12px rgba(0,0,0,0.25);transition:all 0.3s ease}
-.overlay-box button:hover{transform:translateY(-3px)scale(1.05);box-shadow:0 10px 20px rgba(0,0,0,0.35)}
-.overlay-box button.admin-btn{background:linear-gradient(135deg,#ff758c,#ff7eb3)}
-#admin-login-overlay{display:none}
-#admin-login-overlay input{width:90%;padding:14px 12px;margin:5px 0;font-size:16px;border-radius:12px;border:1px solid #ccc;text-align:center;outline:none;transition:all 0.3s ease}
-#admin-login-overlay input:focus{border-color:#007bff;box-shadow:0 0 8px rgba(0,123,255,0.3)}
-#admin-panel{display:none;background:rgba(255,255,255,0.15);backdrop-filter:blur(15px);padding:35px 25px;border-radius:25px;box-shadow:0 12px 40px rgba(0,0,0,0.3);margin-top:20px;width:360px;color:#fff}
-#admin-panel h3{font-size:24px;font-weight:700;margin-bottom:20px;text-align:center}
-#admin-panel input,#admin-panel select{width:100%;padding:14px 15px;margin:8px 0;border-radius:12px;border:1px solid rgba(255,255,255,0.5);outline:none;background:rgba(255,255,255,0.1);color:#fff;font-size:16px;transition:all 0.3s ease}
-#admin-panel input:focus,#admin-panel select:focus{border-color:#00f2fe;box-shadow:0 0 10px rgba(0,255,254,0.4)}
-#admin-panel button{width:100%;padding:15px 0;margin-top:12px;border:none;border-radius:15px;font-size:18px;font-weight:600;cursor:pointer;transition:all 0.3s ease;color:#fff;backdrop-filter:blur(5px);box-shadow:0 4px 15px rgba(0,0,0,0.25)}
-#admin-panel .change-btn{background:linear-gradient(135deg,#28a745,#7be495)}
-#admin-panel .reset-btn{background:linear-gradient(135deg,#dc3545,#ff6b6b)}
-#admin-panel button:hover{transform:translateY(-3px)scale(1.02);box-shadow:0 8px 25px rgba(0,0,0,0.35)}
-.computer{width:100vw;height:100vh;padding:50px;display:flex;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(15px);background:rgba(255,255,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.25);transition:all 0.3s ease;display:none}
-.computer.green{background:rgba(72,255,0,0.15);border:1px solid rgba(40,167,69,0.5)}
-.computer.red{background:rgba(255,72,72,0.15);border:1px solid rgba(220,53,69,0.5)}
-.title{font-size:48px;font-weight:700;color:#fff;margin-bottom:30px;text-align:center;text-shadow:1px 1px 6px rgba(0,0,0,0.5)}
-.queue-number{font-size:clamp(120px,20vw,250px);font-weight:900;color:#fff;min-height:250px;display:flex;justify-content:center;align-items:center;border-radius:30px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);box-shadow:inset 0 4px 12px rgba(0,0,0,0.2);margin-bottom:30px;width:70%;transition:all 0.3s ease}
-.queue-number.done{color:#fff;font-size:clamp(100px,18vw,200px);font-style:normal;background:rgba(0,0,0,0.1)}
-.queue-label{font-size:28px;font-weight:600;color:#fff;margin-bottom:30px;text-align:center;text-shadow:1px 1px 4px rgba(0,0,0,0.3)}
-.computer button{flex:1;margin:10px;padding:20px 25px;font-size:20px;font-weight:700;border-radius:15px;border:none;cursor:pointer;transition:all 0.2s ease;color:#fff;backdrop-filter:blur(5px);box-shadow:0 4px 20px rgba(0,0,0,0.25)}
-.next-btn{background:linear-gradient(135deg,#007bff,#00c6ff)}
-.done-btn{background:linear-gradient(135deg,#6c757d,#a0a0a0)}
-.recall-btn{background:linear-gradient(135deg,#17a2b8,#33d6ff)}
-.transpose-btn{background:linear-gradient(135deg,#ffc107,#ffdd57)}
-.out-btn{background:linear-gradient(135deg,#dc3545,#ff7676)}
-.computer button:hover:not(:disabled){transform:translateY(-3px)scale(1.05);box-shadow:0 6px 25px rgba(0,0,0,0.35)}
-.computer button:disabled{opacity:0.5;cursor:not-allowed}
-.queue-number.animate{animation:numberPop 0.4s ease}
-@keyframes numberPop{0%{transform:scale(1);opacity:0.5}50%{transform:scale(1.4);opacity:1}100%{transform:scale(1);opacity:1)}
+* { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #2a5298); background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; }
+@keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+#selection-overlay, #admin-login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:9999; background: rgba(0,0,0,0.85); }
+.overlay-box { background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding:40px 30px; border-radius:25px; text-align:center; min-width:320px; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; gap:20px; color:#fff; }
+.overlay-box button { padding: 18px 30px; margin: 8px; border: none; border-radius: 15px; cursor: pointer; font-size: 18px; font-weight: bold; color: #fff; background: linear-gradient(135deg, #4facfe, #00f2fe); box-shadow: 0 6px 12px rgba(0,0,0,0.25); transition: all 0.3s ease; }
+.overlay-box button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.35); }
+.overlay-box button.admin-btn { background: linear-gradient(135deg, #ff758c, #ff7eb3); }
+#admin-login-overlay { display:none; }
+#admin-login-overlay input { width:90%; padding:14px 12px; margin:5px 0; font-size:16px; border-radius:12px; border:1px solid #ccc; text-align:center; outline:none; transition:all 0.3s ease; }
+#admin-login-overlay input:focus { border-color:#007bff; box-shadow:0 0 8px rgba(0,123,255,0.3); }
+#admin-panel { display:none; background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); padding:35px 25px; border-radius:25px; box-shadow:0 12px 40px rgba(0,0,0,0.3); margin-top:20px; width:360px; color:#fff; }
+#admin-panel h3 { font-size:24px; font-weight:700; margin-bottom:20px; text-align:center; }
+#admin-panel input, #admin-panel select { width:100%; padding:14px 15px; margin:8px 0; border-radius:12px; border:1px solid rgba(255,255,255,0.5); outline:none; background: rgba(255,255,255,0.1); color:#fff; font-size:16px; transition: all 0.3s ease; }
+#admin-panel input:focus, #admin-panel select:focus { border-color:#00f2fe; box-shadow:0 0 10px rgba(0,255,254,0.4); }
+#admin-panel button { width:100%; padding:15px 0; margin-top:12px; border:none; border-radius:15px; font-size:18px; font-weight:600; cursor:pointer; transition:all 0.3s ease; color:#fff; backdrop-filter: blur(5px); box-shadow:0 4px 15px rgba(0,0,0,0.25);}
+#admin-panel .change-btn { background: linear-gradient(135deg,#28a745,#7be495);}
+#admin-panel .reset-btn { background: linear-gradient(135deg,#dc3545,#ff6b6b);}
+#admin-panel button:hover { transform: translateY(-3px) scale(1.02); box-shadow:0 8px 25px rgba(0,0,0,0.35); }
+.computer { width: 100vw; height: 100vh; padding:50px; display:flex; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(15px); background: rgba(255,255,255,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; display:none; }
+.computer.green { background: rgba(72, 255, 0, 0.15); border:1px solid rgba(40,167,69,0.5);}
+.computer.red { background: rgba(255,72,72,0.15); border:1px solid rgba(220,53,69,0.5);}
+.title { font-size:48px; font-weight:700; color:#fff; margin-bottom:30px; text-align:center; text-shadow:1px 1px 6px rgba(0,0,0,0.5);}
+.queue-number { font-size:clamp(120px,20vw,250px); font-weight:900; color:#fff; min-height:250px; display:flex; justify-content:center; align-items:center; border-radius:30px; background: rgba(255,255,255,0.1); backdrop-filter:blur(10px); box-shadow:inset 0 4px 12px rgba(0,0,0,0.2); margin-bottom:30px; width:70%; transition: all 0.3s ease;}
+.queue-number.done { color: rgba(255,255,255,0.6); font-size:clamp(100px,18vw,200px); font-style:italic; background: rgba(0,0,0,0.1);}
+.queue-label { font-size:28px; font-weight:600; color:#fff; margin-bottom:30px; text-align:center; text-shadow:1px 1px 4px rgba(0,0,0,0.3);}
+.computer button { flex:1; margin:10px; padding:20px 25px; font-size:20px; font-weight:700; border-radius:15px; border:none; cursor:pointer; transition: all 0.2s ease; color:#fff; backdrop-filter: blur(5px); box-shadow:0 4px 20px rgba(0,0,0,0.25);}
+.next-btn { background: linear-gradient(135deg,#007bff,#00c6ff);}
+.done-btn { background: linear-gradient(135deg,#6c757d,#a0a0a0);}
+.recall-btn { background: linear-gradient(135deg,#17a2b8,#33d6ff);}
+.transpose-btn { background: linear-gradient(135deg,#ffc107,#ffdd57);}
+.computer button:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow:0 6px 25px rgba(0,0,0,0.35);}
+.computer button:disabled { opacity:0.5; cursor:not-allowed;}
+.queue-number.animate { animation: numberPop 0.4s ease;}
+@keyframes numberPop { 0% { transform: scale(1); opacity:0.5;} 50% { transform: scale(1.4); opacity:1;} 100% { transform: scale(1); opacity:1;} }
 </style>
 </head>
 <body>
 
+<!-- Selection Overlay -->
 <div id="selection-overlay">
   <div class="overlay-box">
     <h2>Select Your Counter or Admin</h2>
@@ -59,6 +59,7 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
   </div>
 </div>
 
+<!-- Admin Login Overlay -->
 <div id="admin-login-overlay">
   <div class="overlay-box">
     <h2>Admin Login</h2>
@@ -69,6 +70,7 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
   </div>
 </div>
 
+<!-- Admin Panel -->
 <div id="admin-panel">
   <h3>Set Lane Numbers</h3>
   <div>
@@ -89,25 +91,24 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
     <input type="number" id="numberInput" placeholder="Enter Number">
     <button class="change-btn" onclick="setNumber()">Set Number</button>
   </div>
-  <div style="margin-top:20px;text-align:center;">
+  <div style="margin-top:20px; text-align:center;">
     <button class="reset-btn" onclick="resetQueues()">RESET QUEUES</button>
     <button class="change-btn" onclick="showSelectionOverlay()">Change Counter</button>
   </div>
 </div>
 
+<!-- Counters -->
 <script>
-// Counter interface generation
-const countersHTML=[1,2,3,4,5].map(i=>`
+const countersHTML = [1,2,3,4,5].map(i=>`
 <div class="computer ${i<=3?'green':'red'}" id="comp${i}">
   <div class="title">Counter ${i}</div>
   <div class="queue-number" id="queue${i}">0</div>
   <div class="queue-label" id="label${i}">${i<=3?'REGULAR LANE':'PRIORITY LANE'}</div>
-  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;width:80%;">
+  <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; width:80%;">
     <button class="next-btn" id="next${i}" onclick="nextQueue(${i})">Next</button>
     <button class="done-btn" id="done${i}" onclick="doneQueue(${i})">Done</button>
     <button class="recall-btn" id="recall${i}" onclick="recallQueue(${i})">Recall</button>
     <button class="transpose-btn" id="transpose${i}" onclick="transposeQueue(${i})">Transpose</button>
-    <button class="out-btn" id="out${i}" onclick="outWhenCalled(${i})">Out When Called</button>
   </div>
 </div>`).join('');
 document.write(countersHTML);
@@ -117,67 +118,107 @@ document.write(countersHTML);
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-const firebaseConfig={apiKey:"AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",authDomain:"queuesystem-80ce7.firebaseapp.com",databaseURL:"https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"queuesystem-80ce7",storageBucket:"queuesystem-80ce7.appspot.com",messagingSenderId:"399130001823",appId:"1:399130001823:web:052ecfb12ae9007463bdaa"};
+const firebaseConfig = {
+  apiKey: "AIzaSyA44lhpB7Um36IBUWLG98ICiDqAk",
+  authDomain: "queuesystem-80ce7.firebaseapp.com",
+  databaseURL: "https://queuesystem-80ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queuesystem-80ce7",
+  storageBucket: "queuesystem-80ce7.appspot.com",
+  messagingSenderId: "399130001823",
+  appId: "1:399130001823:web:052ecfb12ae9007463bdaa"
+};
 firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+const db = firebase.database();
+let currentCounter = null;
 
-let currentCounter=null;
-const counterState={1:{done:true,color:'green'},2:{done:true,color:'green'},3:{done:true,color:'green'},4:{done:true,color:'red'},5:{done:true,color:'red'}};
+const counterState = {
+  1:{done:true,color:'green'},
+  2:{done:true,color:'green'},
+  3:{done:true,color:'green'},
+  4:{done:true,color:'red'},
+  5:{done:true,color:'red'}
+};
+function updateButtons(i){
+  document.getElementById(`next${i}`).disabled = !counterState[i].done;
+  document.getElementById(`transpose${i}`).disabled = !counterState[i].done;
+}
+for(let i=1;i<=5;i++) updateButtons(i);
 
-function updateButtons(i){document.getElementById(`next${i}`).disabled=!counterState[i].done;document.getElementById(`transpose${i}`).disabled=!counterState[i].done;}
-for(let i=1;i<=5;i++)updateButtons(i);
+// Select Counter / Admin
+function selectCounter(num){ currentCounter=num; document.getElementById('selection-overlay').style.display='none'; for(let i=1;i<=5;i++) document.getElementById(`comp${i}`).style.display = (i===num)?'flex':'none'; }
+function showAdminLogin(){ document.getElementById('selection-overlay').style.display='none'; document.getElementById('admin-login-overlay').style.display='flex'; }
+function loginAdmin(){ 
+  const user=document.getElementById('adminUser').value; 
+  const pass=document.getElementById('adminPass').value; 
+  if(user==='a' && pass==='a'){ document.getElementById('admin-login-overlay').style.display='none'; document.getElementById('admin-panel').style.display='block'; } 
+  else document.getElementById('adminError').style.display='block';
+}
+function showSelectionOverlay(){ location.reload(); }
 
-// Load last number when selecting counter
-function selectCounter(num){
-  currentCounter=num;
-  document.getElementById('selection-overlay').style.display='none';
-  for(let i=1;i<=5;i++)document.getElementById(`comp${i}`).style.display=(i===num)?'flex':'none';
-  db.ref(`/computers/${num}`).once('value').then(snap=>{
-    const val=snap.val();
-    if(val){
-      const el=document.getElementById(`queue${num}`);
-      el.textContent=val.number||0;
-      el.classList.remove('done');
-    }
-  });
+// Display + Firebase Update
+function updateCounterDisplay(i,num,color,label){
+  const el = document.getElementById(`queue${i}`);
+  el.textContent = num;
+  el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
+  db.ref(`/computers/${i}`).set({ number:num,color,label,recall:false });
+  counterState[i].done=(num==="DONE");
+  counterState[i].color=color;
+  updateButtons(i);
 }
 
-function showAdminLogin(){document.getElementById('selection-overlay').style.display='none';document.getElementById('admin-login-overlay').style.display='flex';}
-function loginAdmin(){const user=document.getElementById('adminUser').value;const pass=document.getElementById('adminPass').value;if(user==='a'&&pass==='a'){document.getElementById('admin-login-overlay').style.display='none';document.getElementById('admin-panel').style.display='block';}else document.getElementById('adminError').style.display='block';}
-function showSelectionOverlay(){location.reload();}
-
-function updateCounterDisplay(i,num,color,label){const el=document.getElementById(`queue${i}`);el.textContent=num;el.style.color='#fff';el.classList.add('animate');setTimeout(()=>el.classList.remove('animate'),400);db.ref(`/computers/${i}`).set({number:num,color,label,recall:false});counterState[i].done=(num==="DONE");counterState[i].color=color;updateButtons(i);}
-
-function nextQueue(i){if(!counterState[i].done)return;const color=counterState[i].color;const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{if(c)updateCounterDisplay(i,snap.val(),color,label);});}
-function doneQueue(i){const color=counterState[i].color;const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';const el=document.getElementById(`queue${i}`);el.textContent="DONE";el.classList.add('done');db.ref(`/computers/${i}`).set({number:"DONE",color,label,recall:false});counterState[i].done=true;updateButtons(i);}
-function recallQueue(i){const el=document.getElementById(`queue${i}`);const num=el.textContent;if(num!=="DONE"){db.ref(`/computers/${i}/recall`).set(true);el.classList.add('animate');setTimeout(()=>el.classList.remove('animate'),400);}}
-function transposeQueue(i){if(!counterState[i].done)return;const oldColor=counterState[i].color;const newColor=oldColor==='green'?'red':'green';const label=newColor==='green'?'REGULAR LANE':'PRIORITY LANE';const comp=document.getElementById(`comp${i}`);comp.classList.remove(oldColor);comp.classList.add(newColor);document.getElementById(`label${i}`).textContent=label;db.ref(`/series/${newColor}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{if(c)updateCounterDisplay(i,snap.val(),newColor,label);});}
-
-// ✅ OUT WHEN CALLED: goes next + disables 2s + removes duplicates
-function outWhenCalled(i){
-  const btn=document.getElementById(`out${i}`);
-  btn.disabled=true;setTimeout(()=>btn.disabled=false,2000);
-  const el=document.getElementById(`queue${i}`);const num=el.textContent;if(num==="DONE"||num==="0")return;
+// NEXT
+function nextQueue(i){
+  if(!counterState[i].done) return;
   const color=counterState[i].color;
-  db.ref(`/outWhenCalled/${color}`).once('value').then(snap=>{
-    let arr=snap.val()||[];
-    arr=arr.filter(n=>n!==num);
-    arr.push(num);
-    if(arr.length>20)arr=arr.slice(arr.length-20);
-    db.ref(`/outWhenCalled/${color}`).set(arr).then(()=>{
-      const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
-      db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{
-        if(c)updateCounterDisplay(i,snap.val(),color,label);
-      });
-    });
+  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
+}
+
+// DONE
+function doneQueue(i){
+  const color=counterState[i].color;
+  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  const el=document.getElementById(`queue${i}`);
+  el.textContent="DONE"; el.classList.add('done');
+  db.ref(`/computers/${i}`).set({number:"DONE",color,label,recall:false});
+  counterState[i].done=true; updateButtons(i);
+}
+
+// ✅ RECALL FUNCTION (fixed)
+function recallQueue(i){
+  const el=document.getElementById(`queue${i}`);
+  const currentNumber = el.textContent;
+  if(currentNumber !== "DONE") {
+    const color=counterState[i].color;
+    const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+    db.ref(`/computers/${i}`).update({ recall:true });
+    el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
+  }
+}
+
+// TRANSPOSE
+function transposeQueue(i){
+  if(!counterState[i].done) return;
+  const oldColor = counterState[i].color;
+  const newColor = oldColor==='green'?'red':'green';
+  const label = newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
+
+  // Update counter card style and label
+  const comp = document.getElementById(`comp${i}`);
+  comp.classList.remove(oldColor);
+  comp.classList.add(newColor);
+  document.getElementById(`label${i}`).textContent = label; // <-- update lane label visually
+
+  // Increment series in new lane and update number
+  db.ref(`/series/${newColor}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{
+    if(c) updateCounterDisplay(i,snap.val(),newColor,label);
   });
 }
 
+// RESET ALL
 function resetQueues(){
   if(confirm("Reset all counters and lanes to 0?")){
-    db.ref('/series/green').set(0);
-    db.ref('/series/red').set(0);
-    db.ref('/outWhenCalled').set({});
+    db.ref('/series/green').set(0); db.ref('/series/red').set(0);
     for(let i=1;i<=5;i++){
       const color=i<=3?'green':'red';
       const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
@@ -187,17 +228,30 @@ function resetQueues(){
   }
 }
 
+// ADMIN SET NUMBER
 function setNumber(){
   const i=parseInt(document.getElementById('counterSelect').value);
   const color=document.getElementById('laneSelect').value;
   const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
-  const num=parseInt(document.getElementById('numberInput').value);
-  if(isNaN(num))return alert("Enter a valid number");
-  const comp=document.getElementById(`comp${i}`);
-  comp.classList.remove('green','red');
-  comp.classList.add(color);
-  document.getElementById(`label${i}`).textContent=label;
+  const num=parseInt(document.getElementById('numberInput').value)||0;
   updateCounterDisplay(i,num,color,label);
+  db.ref(`/series/${color}`).set(num);
+  document.getElementById('numberInput').value='';
+}
+
+// LOAD EXISTING NUMBERS FROM FIREBASE
+for(let i=1;i<=5;i++){
+  db.ref(`/computers/${i}`).on('value',snap=>{
+    const data=snap.val();
+    if(data){
+      const el=document.getElementById(`queue${i}`);
+      el.textContent=data.number;
+      if(data.number==="DONE") el.classList.add('done'); else el.classList.remove('done');
+      counterState[i].done=(data.number==="DONE");
+      counterState[i].color=data.color||counterState[i].color;
+      updateButtons(i);
+    }
+  });
 }
 </script>
 </body>
