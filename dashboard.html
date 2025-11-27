@@ -6,29 +6,22 @@
 <title>Queue Dashboard</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  width: 100%; height: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  overflow: hidden;
-}
+html, body { width: 100%; height: 100%; font-family: Arial, sans-serif; background-color: #f4f4f4; overflow: hidden; }
 
-/* Grid layout: counters + announcement (7/8 counters, 1/8 announcement) */
+/* Grid layout */
 body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: 7fr 1fr; /* Top 7/8 counters, bottom 1/8 announcement */
+  grid-template-rows: 7fr 1fr; 
   gap: 4px;
   padding: 4px;
   height: 100vh;
 }
 
-/* Counter container allows auto-fit grid layout */
-.counter-container {
-  display: contents;
-}
+/* Counter container */
+.counter-container { display: contents; }
 
-/* Display cards */
+/* Counter display cards */
 .computer-display {
   display: flex;
   flex-direction: column;
@@ -43,12 +36,16 @@ body {
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 .computer-display.show { opacity: 1; transform: scale(1); }
+
+/* Lane colors */
 .computer-display.green { border-color: #28a745; background-color: #e9ffe9; }
 .computer-display.red { border-color: #dc3545; background-color: #ffe9e9; }
+.computer-display.yellow { border-color: #ffc107; background-color: #fff8e1; } /* NEW */
 
+/* Titles */
 .computer-title { font-size: 3vw; font-weight: bold; text-align: center; }
 
-/* Queue number styling */
+/* Queue number */
 .queue-number {
   font-size: 7vw;
   font-weight: 900;
@@ -62,27 +59,42 @@ body {
   height: 100%;
 }
 
-/* Match queue number color to the counter color */
+/* Match number color to lane */
 .computer-display.green .queue-number { color: #28a745; }
 .computer-display.red .queue-number { color: #dc3545; }
+.computer-display.yellow .queue-number { color: #ffc107; } /* NEW */
 
-/* Pulsing glow animation */
+/* Pulsing animations */
 @keyframes pulseGreen {
-  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #28a745; }
-  50% { transform: scale(1.25); text-shadow: 0 0 2vw #34d058; }
+  0%,100%{ transform: scale(1); text-shadow:0 0 0.5vw #28a745; }
+  50%{ transform: scale(1.25); text-shadow:0 0 2vw #34d058; }
 }
 @keyframes pulseRed {
-  0%, 100% { transform: scale(1); text-shadow: 0 0 0.5vw #dc3545; }
-  50% { transform: scale(1.25); text-shadow: 0 0 2vw #ff5c5c; }
+  0%,100%{ transform: scale(1); text-shadow:0 0 0.5vw #dc3545; }
+  50%{ transform: scale(1.25); text-shadow:0 0 2vw #ff5c5c; }
+}
+@keyframes pulseYellow {
+  0%,100%{ transform: scale(1); text-shadow:0 0 0.5vw #ffc107; }
+  50%{ transform: scale(1.25); text-shadow:0 0 2vw #ffd740; }
 }
 
-/* Apply animation when highlighted */
+/* Highlight */
 .queue-number.highlight.green { animation: pulseGreen 0.8s ease-in-out; }
 .queue-number.highlight.red { animation: pulseRed 0.8s ease-in-out; }
+.queue-number.highlight.yellow { animation: pulseYellow 0.8s ease-in-out; } /* NEW */
 
-.queue-label { font-size: 2.5vw; font-weight: bold; text-align: center; margin-top: 1vh; }
+/* Labels */
+.queue-label {
+  font-size: 2.5vw;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1vh;
+  white-space: normal;       /* allow text to wrap */
+  line-height: 1.1;          /* adjust spacing for multiple lines */
+  word-break: break-word;    /* break long words if needed */
+}
 
-/* Announcement Bar (1/8 screen) */
+/* Announcement Bar */
 .announcement-bar {
   grid-column: 1 / -1;
   grid-row: 2 / 3;
@@ -93,7 +105,7 @@ body {
   color: #000;
   text-align: center;
   font-weight: bold;
-  font-size: 10px; /* initial small, will grow dynamically */
+  font-size: 10px;
   padding: 0 2vw;
   border-top: 3px solid #000;
   overflow: hidden;
@@ -102,7 +114,7 @@ body {
   line-height: 1.1;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 1600px) {
   .queue-number { font-size: 6vw; }
   .computer-title { font-size: 2.5vw; }
@@ -114,10 +126,7 @@ body {
   .queue-label { font-size: 1.8vw; }
 }
 @media (max-width: 800px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, 7fr) 1fr;
-  }
+  body { grid-template-columns: 1fr; grid-template-rows: repeat(5,7fr) 1fr; }
   .queue-number { font-size: 12vw; }
   .computer-title { font-size: 4vw; }
   .queue-label { font-size: 3vw; }
@@ -139,10 +148,10 @@ body {
     <div class="queue-number" id="queue2">0</div>
     <div class="queue-label">REGULAR LANE</div>
   </div>
-  <div class="computer-display green" id="comp3">
+  <div class="computer-display yellow" id="comp3">
     <div class="computer-title">Counter 3</div>
     <div class="queue-number" id="queue3">0</div>
-    <div class="queue-label">REGULAR LANE</div>
+    <div class="queue-label">GENERAL MEDICINE LANE</div>
   </div>
   <div class="computer-display red" id="comp4">
     <div class="computer-title">Counter 4</div>
@@ -181,7 +190,6 @@ const db = firebase.database();
 <!-- AI Voice -->
 <script>
 let maleVoice=null, femaleVoice=null, voicesLoaded=false, speechQueue=[], speaking=false;
-
 function loadVoices(){ 
   const voices = speechSynthesis.getVoices(); 
   if(!voices.length) return; 
@@ -202,7 +210,7 @@ function processSpeechQueue(){
   speaking=true; 
   const {text,color} = speechQueue.shift(); 
   const msg = new SpeechSynthesisUtterance(text); 
-  msg.voice = (color==='green') ? maleVoice : femaleVoice; 
+  msg.voice = (color==='green' || color==='yellow') ? maleVoice : femaleVoice; 
   msg.lang="en-US"; 
   msg.rate=0.95; msg.pitch=1; msg.volume=1; 
   msg.onend=()=>{ speaking=false; setTimeout(processSpeechQueue,200); }; 
@@ -214,7 +222,7 @@ function processSpeechQueue(){
 /* Highlight animation */
 function highlightNumber(el){ 
   const parent = el.closest('.computer-display');
-  const colorClass = parent.classList.contains('red') ? 'red' : 'green';
+  let colorClass = parent.classList.contains('red') ? 'red' : parent.classList.contains('yellow') ? 'yellow' : 'green';
   el.classList.add('highlight', colorClass);
   setTimeout(()=>el.classList.remove('highlight', colorClass),800); 
 }
@@ -241,7 +249,7 @@ counters.forEach((i, idx) => {
     const displayNumber = (data.number === "DONE") ? "—" : data.number;
     el.textContent = displayNumber;
 
-    compEl.classList.remove('green','red'); 
+    compEl.classList.remove('green','red','yellow'); 
     compEl.classList.add(data.color); 
     labelEl.textContent = data.label;
 
@@ -249,8 +257,8 @@ counters.forEach((i, idx) => {
       highlightNumber(el);
       if(data.number !== "DONE"){
         const message = data.recall ? 
-          `Now recalling, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.` :
-          `Now serving, ${data.color.toUpperCase()} number ${data.number}, please proceed to counter ${i}.`;
+          `Now recalling, ${data.label} number ${data.number}, please proceed to counter ${i}.` :
+          `Now serving, ${data.label} number ${data.number}, please proceed to counter ${i}.`;
         queueSpeech(message, data.color);
       }
       if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
@@ -259,64 +267,20 @@ counters.forEach((i, idx) => {
   });
 });
 
-/* Dynamically scale announcement text to fill bar height with multi-line support */
+/* Announcement resize */
 const announcementEl = document.getElementById('announcement');
 function fitAnnouncementText() {
   if (!announcementEl) return;
-  
   const barHeight = announcementEl.clientHeight;
-  let fontSize = Math.floor(barHeight * 0.8); // start smaller to avoid overshoot
+  let fontSize = Math.floor(barHeight * 0.8);
   announcementEl.style.fontSize = fontSize + "px";
-
   while (announcementEl.scrollHeight > barHeight && fontSize > 10) {
     fontSize -= 1;
     announcementEl.style.fontSize = fontSize + "px";
   }
 }
-
-window.addEventListener('load', () => {
-  fitAnnouncementText();
-  runAudioTest(); // run audio test on load
-});
+window.addEventListener('load', fitAnnouncementText);
 window.addEventListener('resize', fitAnnouncementText);
 </script>
-
-<!-- Audio Test -->
-<script>
-function runAudioTest() {
-  if (!speechSynthesis.getVoices().length) setTimeout(loadVoices, 500);
-  queueSpeech("HELLO!", "green");
-  queueSpeech("GOOD MORNING..", "red");
-}
-</script>
-<!-- Start Dashboard Button -->
-<button id="startBtn" style="
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 20px 40px;
-  font-size: 24px;
-  border-radius: 12px;
-  border: none;
-  background-color: #28a745;
-  color: white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  cursor: pointer;
-  z-index: 9999;
-">
-Start Dashboard
-</button>
-
-<script>
-const startBtn = document.getElementById('startBtn');
-startBtn.addEventListener('click', () => {
-  // Hide button
-  startBtn.style.display = 'none';
-  // Run initial audio test
-  runAudioTest();
-});
-</script>
-
 </body>
 </html>
