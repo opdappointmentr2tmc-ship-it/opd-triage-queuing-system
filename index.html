@@ -27,6 +27,7 @@ body { height: 100vh; display: flex; justify-content: center; align-items: cente
 .computer { width: 100vw; height: 100vh; padding:50px; display:flex; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(15px); background: rgba(255,255,255,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.25); transition: all 0.3s ease; display:none; }
 .computer.green { background: rgba(72, 255, 0, 0.15); border:1px solid rgba(40,167,69,0.5);}
 .computer.red { background: rgba(255,72,72,0.15); border:1px solid rgba(220,53,69,0.5);}
+.computer.yellow { background: rgba(255,255,72,0.15); border:1px solid rgba(255,193,7,0.5);} /* NEW */
 .title { font-size:48px; font-weight:700; color:#fff; margin-bottom:30px; text-align:center; text-shadow:1px 1px 6px rgba(0,0,0,0.5);}
 .queue-number { font-size:clamp(120px,20vw,250px); font-weight:900; color:#fff; min-height:250px; display:flex; justify-content:center; align-items:center; border-radius:30px; background: rgba(255,255,255,0.1); backdrop-filter:blur(10px); box-shadow:inset 0 4px 12px rgba(0,0,0,0.2); margin-bottom:30px; width:70%; transition: all 0.3s ease;}
 .queue-number.done { color: rgba(255,255,255,0.6); font-size:clamp(100px,18vw,200px); font-style:italic; background: rgba(0,0,0,0.1);}
@@ -78,6 +79,7 @@ body { height: 100vh; display: flex; justify-content: center; align-items: cente
     <select id="laneSelect">
       <option value="green">Regular Lane</option>
       <option value="red">Priority Lane</option>
+      <option value="yellow">General Medicine Lane</option> <!-- NEW -->
     </select>
     <label>Counter</label>
     <select id="counterSelect">
@@ -100,10 +102,10 @@ body { height: 100vh; display: flex; justify-content: center; align-items: cente
 <!-- Counters -->
 <script>
 const countersHTML = [1,2,3,4,5].map(i=>`
-<div class="computer ${i<=3?'green':'red'}" id="comp${i}">
+<div class="computer ${i===3?'yellow':i<=3?'green':'red'}" id="comp${i}"> <!-- NEW -->
   <div class="title">Counter ${i}</div>
   <div class="queue-number" id="queue${i}">0</div>
-  <div class="queue-label" id="label${i}">${i<=3?'REGULAR LANE':'PRIORITY LANE'}</div>
+  <div class="queue-label" id="label${i}">${i===3?'GENERAL MEDICINE LANE':i<=3?'REGULAR LANE':'PRIORITY LANE'}</div>
   <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; width:80%;">
     <button class="next-btn" id="next${i}" onclick="nextQueue(${i})">Next</button>
     <button class="done-btn" id="done${i}" onclick="doneQueue(${i})">Done</button>
@@ -131,13 +133,15 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 let currentCounter = null;
 
+// Initial counter state
 const counterState = {
   1:{done:true,color:'green'},
   2:{done:true,color:'green'},
-  3:{done:true,color:'green'},
+  3:{done:true,color:'yellow'}, // GENERAL MEDICINE
   4:{done:true,color:'red'},
   5:{done:true,color:'red'}
 };
+
 function updateButtons(i){
   document.getElementById(`next${i}`).disabled = !counterState[i].done;
   document.getElementById(`transpose${i}`).disabled = !counterState[i].done;
@@ -155,10 +159,11 @@ function loginAdmin(){
 }
 function showSelectionOverlay(){ location.reload(); }
 
-// Display + Firebase Update
+// Update counter display
 function updateCounterDisplay(i,num,color,label){
   const el = document.getElementById(`queue${i}`);
   el.textContent = num;
+  if(num==="DONE") el.classList.add('done'); else el.classList.remove('done');
   el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
   db.ref(`/computers/${i}`).set({ number:num,color,label,recall:false });
   counterState[i].done=(num==="DONE");
@@ -170,27 +175,32 @@ function updateCounterDisplay(i,num,color,label){
 function nextQueue(i){
   if(!counterState[i].done) return;
   const color=counterState[i].color;
-  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
-  db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
+  const label=color==='green'?'REGULAR LANE': color==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE';
+
+  if(color==='yellow'){
+    db.ref('/series/yellow').once('value',snap=>{
+      const val = snap.val()||0;
+      if(val>=50){ alert('GENERAL MEDICINE LANE has reached its maximum of 50 numbers.'); return; }
+      else db.ref(`/series/yellow`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
+    });
+  } else {
+    db.ref(`/series/${color}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
+  }
 }
 
 // DONE
 function doneQueue(i){
   const color=counterState[i].color;
-  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
-  const el=document.getElementById(`queue${i}`);
-  el.textContent="DONE"; el.classList.add('done');
-  db.ref(`/computers/${i}`).set({number:"DONE",color,label,recall:false});
-  counterState[i].done=true; updateButtons(i);
+  const label=color==='green'?'REGULAR LANE': color==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE';
+  updateCounterDisplay(i,"DONE",color,label);
 }
 
-// ✅ RECALL FUNCTION (fixed)
+// RECALL
 function recallQueue(i){
   const el=document.getElementById(`queue${i}`);
   const currentNumber = el.textContent;
   if(currentNumber !== "DONE") {
     const color=counterState[i].color;
-    const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
     db.ref(`/computers/${i}`).update({ recall:true });
     el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),400);
   }
@@ -200,30 +210,43 @@ function recallQueue(i){
 function transposeQueue(i){
   if(!counterState[i].done) return;
   const oldColor = counterState[i].color;
-  const newColor = oldColor==='green'?'red':'green';
-  const label = newColor==='green'?'REGULAR LANE':'PRIORITY LANE';
+  let newColor;
+  if(oldColor==='green') newColor='red';
+  else if(oldColor==='red') newColor='green';
+  else if(oldColor==='yellow') newColor='green'; // can only leave yellow
+  else newColor='yellow';
 
-  // Update counter card style and label
+  if(newColor==='yellow'){
+    db.ref('/series/yellow').once('value',snap=>{
+      const val = snap.val()||0;
+      if(val>=50){ alert('GENERAL MEDICINE LANE has reached its maximum of 50 numbers.'); return; }
+      else proceedTranspose(i,oldColor,newColor);
+    });
+  } else proceedTranspose(i,oldColor,newColor);
+}
+
+function proceedTranspose(i, oldColor, newColor){
+  const label = newColor==='green'?'REGULAR LANE': newColor==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE';
+  counterState[i].color=newColor;
+
   const comp = document.getElementById(`comp${i}`);
   comp.classList.remove(oldColor);
   comp.classList.add(newColor);
-  document.getElementById(`label${i}`).textContent = label; // <-- update lane label visually
+  document.getElementById(`label${i}`).textContent=label;
 
-  // Increment series in new lane and update number
-  db.ref(`/series/${newColor}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{
-    if(c) updateCounterDisplay(i,snap.val(),newColor,label);
-  });
+  db.ref(`/series/${newColor}`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),newColor,label); });
 }
 
 // RESET ALL
 function resetQueues(){
   if(confirm("Reset all counters and lanes to 0?")){
-    db.ref('/series/green').set(0); db.ref('/series/red').set(0);
+    db.ref('/series/green').set(0);
+    db.ref('/series/red').set(0);
+    db.ref('/series/yellow').set(0); // NEW
     for(let i=1;i<=5;i++){
-      const color=i<=3?'green':'red';
-      const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+      const color=i===3?'yellow':i<=3?'green':'red';
+      const label=color==='green'?'REGULAR LANE':color==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE';
       updateCounterDisplay(i,0,color,label);
-      document.getElementById(`queue${i}`).classList.remove('done');
     }
   }
 }
@@ -232,7 +255,7 @@ function resetQueues(){
 function setNumber(){
   const i=parseInt(document.getElementById('counterSelect').value);
   const color=document.getElementById('laneSelect').value;
-  const label=color==='green'?'REGULAR LANE':'PRIORITY LANE';
+  const label=color==='green'?'REGULAR LANE':color==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE';
   const num=parseInt(document.getElementById('numberInput').value)||0;
   updateCounterDisplay(i,num,color,label);
   db.ref(`/series/${color}`).set(num);
@@ -244,12 +267,7 @@ for(let i=1;i<=5;i++){
   db.ref(`/computers/${i}`).on('value',snap=>{
     const data=snap.val();
     if(data){
-      const el=document.getElementById(`queue${i}`);
-      el.textContent=data.number;
-      if(data.number==="DONE") el.classList.add('done'); else el.classList.remove('done');
-      counterState[i].done=(data.number==="DONE");
-      counterState[i].color=data.color||counterState[i].color;
-      updateButtons(i);
+      updateCounterDisplay(i,data.number,data.color,data.color==='green'?'REGULAR LANE':data.color==='red'?'PRIORITY LANE':'GENERAL MEDICINE LANE');
     }
   });
 }
