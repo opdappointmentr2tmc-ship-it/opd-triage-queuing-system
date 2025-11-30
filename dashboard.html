@@ -261,35 +261,50 @@ counters.forEach((i, idx) => {
   setTimeout(() => compEl.classList.add('show'), idx * fadeDelay);
 
   db.ref(`/computers/${i}`).on('value', snap => {
-    const data = snap.val(); 
-    if(!data) return;
+  const data = snap.val(); 
+  if(!data) return;
 
-    const oldNumber = lastNumber[i] || "0";
-    const displayNumber = (data.number === "DONE") ? "—" : data.number;
-    el.textContent = displayNumber;
+  const oldNumber = lastNumber[i] || "0";
 
-    // Update lane classes for color
-    compEl.classList.remove('green','red','yellow'); 
-    compEl.classList.add(data.color); 
+  // For General Medicine Lane, keep last number if DONE
+  let displayNumber;
+  if(data.number === "DONE" && data.color === "yellow") {
+    displayNumber = oldNumber; // Keep last number
+  } else {
+    displayNumber = (data.number === "DONE") ? "—" : data.number;
+  }
+  
+  el.textContent = displayNumber;
 
-    const laneLabel = data.color==='green'?'Regular Lane':data.color==='red'?'Priority Lane':'General Medicine Lane';
-    labelEl.textContent = laneLabel;
+  // Update lane classes for color
+  compEl.classList.remove('green','red','yellow'); 
+  compEl.classList.add(data.color); 
 
-    // Counter title same color as lane
-    titleEl.style.color = (data.color==='green')?'#28a745':(data.color==='red')?'#dc3545':'#ffc107';
+  // Map lane label for visual display
+  const laneLabelVisual = data.color==='green'?'Regular Lane':data.color==='red'?'Priority Lane':'General Medicine Lane';
+  labelEl.textContent = laneLabelVisual;
 
-    if(data.recall || (data.number !== oldNumber && data.number !== "DONE")){
-      highlightNumber(el);
-      if(data.number !== "DONE"){
-        const message = data.recall ? 
-          `Now recalling, ${laneLabel} number ${data.number}, please proceed to counter ${i}.` :
-          `Now serving, ${laneLabel} number ${data.number}, please proceed to counter ${i}.`;
-        queueSpeech(message, data.color);
-      }
-      if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
+  // Counter title same color as lane
+  titleEl.style.color = (data.color==='green')?'#28a745':(data.color==='red')?'#dc3545':'#ffc107';
+
+  if(data.recall || (data.number !== oldNumber && data.number !== "DONE")){
+    highlightNumber(el);
+
+    if(data.number !== "DONE" || data.color === "yellow"){
+      // Map lane label for voice announcement
+      const laneLabelVoice = data.color==='green' ? 'Green' : data.color==='red' ? 'Red' : 'General Medicine Lane';
+      
+      const message = data.recall ? 
+        `Now recalling, ${laneLabelVoice} number ${data.number}, please proceed to counter ${i}.` :
+        `Now serving, ${laneLabelVoice} number ${data.number}, please proceed to counter ${i}.`;
+      
+      queueSpeech(message, data.color);
     }
-    lastNumber[i] = data.number;
-  });
+    if(data.recall) db.ref(`/computers/${i}/recall`).set(false);
+  }
+  lastNumber[i] = data.number;
+});
+
 });
 
 /* Announcement Bar */
