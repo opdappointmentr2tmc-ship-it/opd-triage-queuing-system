@@ -180,7 +180,7 @@ function nextQueue(i){
   if(color==='yellow'){
     db.ref('/series/yellow').once('value',snap=>{
       const val = snap.val()||0;
-      if(val>=50){ alert('GENERAL MEDICINE LANE has reached its maximum of 50 numbers.'); return; }
+      if(val>=80){ alert('GENERAL MEDICINE LANE has reached its maximum of 80 numbers.'); return; }
       else db.ref(`/series/yellow`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
     });
   } else {
@@ -274,3 +274,4 @@ for(let i=1;i<=5;i++){
 </script>
 </body>
 </html>
+
