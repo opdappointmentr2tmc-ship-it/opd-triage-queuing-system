@@ -219,7 +219,7 @@ function transposeQueue(i){
   if(newColor==='yellow'){
     db.ref('/series/yellow').once('value',snap=>{
       const val = snap.val()||0;
-      if(val>=50){ alert('GENERAL MEDICINE LANE has reached its maximum of 50 numbers.'); return; }
+      if(val>=80){ alert('GENERAL MEDICINE LANE has reached its maximum of 80 numbers.'); return; }
       else proceedTranspose(i,oldColor,newColor);
     });
   } else proceedTranspose(i,oldColor,newColor);
@@ -274,4 +274,5 @@ for(let i=1;i<=5;i++){
 </script>
 </body>
 </html>
+
 
