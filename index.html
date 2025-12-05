@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R2TMC OPD Triage Queueing System</title>
+<title>Queue System</title>
 <style>
 * { box-sizing: border-box; margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #2a5298); background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; }
@@ -44,6 +44,8 @@ body { height: 100vh; display: flex; justify-content: center; align-items: cente
 </style>
 </head>
 <body>
+<!-- Toast Notification -->
+<div id="toast" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(220,53,69,0.9); color: #fff; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 600; box-shadow: 0 8px 20px rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; z-index: 10000;"></div>
 
 <!-- Selection Overlay -->
 <div id="selection-overlay">
@@ -98,7 +100,7 @@ body { height: 100vh; display: flex; justify-content: center; align-items: cente
     <button class="change-btn" onclick="showSelectionOverlay()">Change Counter</button>
   </div>
 </div>
-  
+
 <!-- Counters -->
 <script>
 const countersHTML = [1,2,3,4,5].map(i=>`
@@ -180,7 +182,10 @@ function nextQueue(i){
   if(color==='yellow'){
     db.ref('/series/yellow').once('value',snap=>{
       const val = snap.val()||0;
-      if(val>=80){ alert('GENERAL MEDICINE LANE has reached its maximum of 80 numbers.'); return; }
+      if(val >= 80) {
+  showToast('⚠️ The General Medicine lane has reached its maximum capacity of 80 patients. ⚠️');
+  return;
+}
       else db.ref(`/series/yellow`).transaction(curr=>(curr||0)+1,(e,c,snap)=>{ if(c) updateCounterDisplay(i,snap.val(),color,label); });
     });
   } else {
@@ -219,7 +224,7 @@ function transposeQueue(i){
   if(newColor==='yellow'){
     db.ref('/series/yellow').once('value',snap=>{
       const val = snap.val()||0;
-      if(val>=80){ alert('GENERAL MEDICINE LANE has reached its maximum of 80 numbers.'); return; }
+      if(val>=50){ alert('GENERAL MEDICINE LANE has reached its maximum of 50 numbers.'); return; }
       else proceedTranspose(i,oldColor,newColor);
     });
   } else proceedTranspose(i,oldColor,newColor);
@@ -271,9 +276,22 @@ for(let i=1;i<=5;i++){
     }
   });
 }
+
+function showToast(message, bgColor = 'rgba(220,53,69,0.9)') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.background = bgColor;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  
+  // Hide after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 3000);
+}
+
 </script>
 </body>
 </html>
-
-
 
